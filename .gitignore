@@ -1,4 +1,11 @@
-target/
+
+dependency-reduced-pom.xml
+**/HELP.md
+**/target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
 
 ### IntelliJ IDEA ###
 .idea/modules.xml
