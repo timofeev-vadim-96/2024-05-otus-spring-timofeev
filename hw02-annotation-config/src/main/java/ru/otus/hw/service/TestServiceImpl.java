@@ -40,14 +40,18 @@ public class TestServiceImpl implements TestService {
         for (int i = 0; i < answers.size(); i++) {
             ioService.printLine(String.format("%d: %s", i + 1, answers.get(i).text()));
         }
-        int studentChoice = ioService.readIntForRangeWithPrompt(1, answers.size(), "Enter answer:", "There is no such answer choice");
+        int studentChoice = ioService.readIntForRangeWithPrompt(
+                1,
+                answers.size(),
+                "Enter answer:",
+                "There is no such answer choice");
         return studentChoice == rightChoice + 1;
     }
 
     /**
      * @return index of right answer or returns -1 if there is not right answer at all
      */
-    private int getRightChoiceNumber(Question question){
+    private int getRightChoiceNumber(Question question) {
         List<Answer> answers = question.answers();
         Optional<Answer> answer = answers.stream().filter(Answer::isCorrect).findFirst();
         return answer.map(answers::indexOf).orElse(-1);
