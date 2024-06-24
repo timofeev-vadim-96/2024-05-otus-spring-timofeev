@@ -1,8 +1,6 @@
 package ru.otus.hw.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.event.ContextRefreshedEvent;
-import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -16,8 +14,7 @@ public class TestRunnerServiceImpl implements TestRunnerService {
     private final ResultService resultService;
 
     @Override
-    @EventListener(ContextRefreshedEvent.class)
-    public void run() {
+    public void run(String... args) {
         var student = studentService.determineCurrentStudent();
         var testResult = testService.executeTestFor(student);
         resultService.showResult(testResult);
