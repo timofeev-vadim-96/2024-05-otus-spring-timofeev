@@ -2,18 +2,19 @@ package ru.otus.hw.service;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.shell.command.annotation.Command;
 import org.springframework.shell.command.annotation.CommandAvailability;
 import org.springframework.stereotype.Service;
-import ru.otus.hw.domain.Question;
 import ru.otus.hw.domain.TestResult;
-
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 @Command(group = "app-commands")
 public class TestCommandsServiceImpl implements TestCommandsService {
+    @Getter
+    private static TestResult result;
 
     private final TestService testService;
 
@@ -21,8 +22,6 @@ public class TestCommandsServiceImpl implements TestCommandsService {
 
     private final ResultService resultService;
 
-    @Getter
-    private TestResult result;
 
     @Override
     @Command(command = "run", alias = "r")
@@ -35,7 +34,7 @@ public class TestCommandsServiceImpl implements TestCommandsService {
     @Override
     @Command(command = "result", alias = "res")
     @CommandAvailability(provider = "showResultCommandAvailability")
-    public void showRightAnswers() {
+    public void result() {
         resultService.showRightAnswers(result);
     }
 }

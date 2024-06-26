@@ -4,5 +4,6 @@ import ru.otus.hw.domain.TestResult;
 
 public interface ResultService {
     void showResult(TestResult testResult);
+
     void showRightAnswers(TestResult testResult);
 }

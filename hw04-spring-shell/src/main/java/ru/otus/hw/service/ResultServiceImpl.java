@@ -2,7 +2,6 @@ package ru.otus.hw.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.test.context.aot.TestRuntimeHintsRegistrar;
 import ru.otus.hw.config.TestConfig;
 import ru.otus.hw.domain.Question;
 import ru.otus.hw.domain.TestResult;
@@ -40,10 +39,10 @@ public class ResultServiceImpl implements ResultService {
         ioService.printFormattedLineLocalized("ResultService.student",
                 result.getStudent().getFullName());
         Map<Question, Boolean> answeredQuestions = result.getAnsweredQuestions();
-        for (Question question: answeredQuestions.keySet()) {
-            ioService.printFormattedLineLocalized("ResultService.question", question);
+        for (Question question : answeredQuestions.keySet()) {
+            ioService.printFormattedLineLocalized("ResultService.question", question.text());
             ioService.printFormattedLineLocalized("ResultService.student.isRightAnswer",
-                    answeredQuestions.get(question));
+                    ioService.getMessage(String.valueOf(answeredQuestions.get(question))));
         }
     }
 }

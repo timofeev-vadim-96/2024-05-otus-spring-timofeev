@@ -21,7 +21,6 @@ public class ShellBeansConfig {
 
         return () -> {
             TestResult result = testRunnerService.getResult();
-            log.info(String.valueOf(result == null));
             return result != null ? Availability.available() : Availability.unavailable(
                     localizedIOService.getMessage("AvailabilityProvider.showResult.unavailable"));
         };
