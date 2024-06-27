@@ -1,7 +1,9 @@
 package ru.otus.hw.service;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import ru.otus.hw.dao.QuestionDao;
 import ru.otus.hw.domain.Student;
 
@@ -10,17 +12,17 @@ import java.util.Collections;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
+@SpringBootTest(classes = {TestServiceImpl.class})
 class TestServiceImplTest {
-    static TestService service;
-    static LocalizedIOService ioService;
-    static QuestionDao dao;
 
-    @BeforeAll
-    static void setUp(){
-        ioService = mock(LocalizedIOService.class);
-        dao = mock(QuestionDao.class);
-        service = new TestServiceImpl(ioService, dao);
-    }
+    @Autowired
+    TestService service;
+
+    @MockBean
+    LocalizedIOService ioService;
+
+    @MockBean
+    QuestionDao dao;
 
     @Test
     void executeTest() {

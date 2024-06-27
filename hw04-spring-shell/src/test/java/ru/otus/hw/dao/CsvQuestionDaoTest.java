@@ -1,8 +1,10 @@
 package ru.otus.hw.dao;
 
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import ru.otus.hw.config.TestFileNameProvider;
 import ru.otus.hw.domain.Question;
 import ru.otus.hw.exceptions.QuestionReadException;
@@ -10,18 +12,15 @@ import ru.otus.hw.exceptions.QuestionReadException;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+@SpringBootTest(classes = {CsvQuestionDao.class})
 class CsvQuestionDaoTest {
-    static TestFileNameProvider fileNameProvider;
-    static CsvQuestionDao dao;
+    @Autowired
+    QuestionDao dao;
 
-    @BeforeAll
-    static void setUp(){
-        fileNameProvider = mock(TestFileNameProvider.class);
-        dao = new CsvQuestionDao(fileNameProvider);
-    }
+    @MockBean
+    TestFileNameProvider fileNameProvider;
 
     @Test
     void findAllPositive() {
