@@ -20,3 +20,4 @@ dependency-reduced-pom.xml
 mvnw.cmd
 mvnw
 technical-tasks/**
+spring-shell.log
