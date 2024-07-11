@@ -21,3 +21,4 @@ mvnw.cmd
 mvnw
 technical-tasks/**
 spring-shell.log
+**/docker-compose/config

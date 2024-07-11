@@ -1,25 +1,22 @@
 package ru.otus.hw.commands;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.shell.standard.ShellComponent;
-import org.springframework.shell.standard.ShellMethod;
-import ru.otus.hw.converters.GenreConverter;
+import org.springframework.shell.command.annotation.Command;
+import ru.otus.hw.models.Genre;
 import ru.otus.hw.services.GenreService;
 
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
-@ShellComponent
+@Command(group = "genre-commands")
 public class GenreCommands {
 
     private final GenreService genreService;
 
-    private final GenreConverter genreConverter;
-
-    @ShellMethod(value = "Find all genres", key = "ag")
+    @Command(description = "Find all genres", command = "genres", alias = "ag")
     public String findAllGenres() {
         return genreService.findAll().stream()
-                .map(genreConverter::genreToString)
+                .map(Genre::toString)
                 .collect(Collectors.joining("," + System.lineSeparator()));
     }
 }

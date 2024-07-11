@@ -1,9 +1,8 @@
 package ru.otus.hw.commands;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.shell.standard.ShellComponent;
-import org.springframework.shell.standard.ShellMethod;
-import ru.otus.hw.converters.BookConverter;
+import org.springframework.shell.command.annotation.Command;
+import ru.otus.hw.models.Book;
 import ru.otus.hw.services.BookService;
 
 import java.util.Set;
@@ -11,43 +10,41 @@ import java.util.stream.Collectors;
 
 @SuppressWarnings({"SpellCheckingInspection", "unused"})
 @RequiredArgsConstructor
-@ShellComponent
+@Command(group = "book-commands")
 public class BookCommands {
 
     private final BookService bookService;
 
-    private final BookConverter bookConverter;
-
-    @ShellMethod(value = "Find all books", key = "ab")
+    @Command(description = "Find all books", command = "books", alias = "ab")
     public String findAllBooks() {
         return bookService.findAll().stream()
-                .map(bookConverter::bookToString)
+                .map(Book::toString)
                 .collect(Collectors.joining("," + System.lineSeparator()));
     }
 
-    @ShellMethod(value = "Find book by id", key = "bbid")
+    @Command(description = "Find book by id. Params: id", command = "bbid")
     public String findBookById(long id) {
         return bookService.findById(id)
-                .map(bookConverter::bookToString)
+                .map(Book::toString)
                 .orElse("Book with id %d not found".formatted(id));
     }
 
     // bins newBook 1 1,6
-    @ShellMethod(value = "Insert book", key = "bins")
+    @Command(description = "Insert book. Params: title, authorId, {genresIds}", command = "bins")
     public String insertBook(String title, long authorId, Set<Long> genresIds) {
         var savedBook = bookService.insert(title, authorId, genresIds);
-        return bookConverter.bookToString(savedBook);
+        return savedBook.toString();
     }
 
     // bupd 4 editedBook 3 2,5
-    @ShellMethod(value = "Update book", key = "bupd")
+    @Command(description = "Update book. Params: id, title, authorId, {genresIds}", command = "bupd")
     public String updateBook(long id, String title, long authorId, Set<Long> genresIds) {
-        var savedBook = bookService.update(id, title, authorId, genresIds);
-        return bookConverter.bookToString(savedBook);
+        var updatedBook = bookService.update(id, title, authorId, genresIds);
+        return updatedBook.toString();
     }
 
     // bdel 4
-    @ShellMethod(value = "Delete book by id", key = "bdel")
+    @Command(description = "Delete book by id. Params: id", command = "bdel")
     public void deleteBook(long id) {
         bookService.deleteById(id);
     }
