@@ -1,12 +1,8 @@
 spring:
-#  datasource:
-#    url: jdbc:h2:mem:testdb
   datasource:
-    url: jdbc:postgresql://localhost:5432/testdb
-    username: postgres
-    password: admin
+    url: jdbc:h2:mem:testdb
   sql:
     init:
-      mode: always
+      mode: embedded
       data-locations: data.sql
       schema-locations: schema.sql

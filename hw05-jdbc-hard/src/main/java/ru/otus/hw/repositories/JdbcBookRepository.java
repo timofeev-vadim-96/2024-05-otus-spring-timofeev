@@ -4,9 +4,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSourceUtils;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import ru.otus.hw.exceptions.EntityNotFoundException;
@@ -138,13 +141,14 @@ public class JdbcBookRepository implements BookRepository {
             throw new EntityNotFoundException("Author with an id = %d not found");
         }
 
-        String sql = "insert into books (title, author_id) values (:title, :authorId) returning id";
-        Long newId = jdbc.queryForObject(
-                sql,
-                Map.of("title", book.getTitle(), "authorId", book.getAuthor().getId()),
-                Long.class);
+        KeyHolder kh = new GeneratedKeyHolder();
+        MapSqlParameterSource parameterSource = new MapSqlParameterSource();
+        parameterSource.addValues(Map.of("title", book.getTitle(), "authorId", book.getAuthor().getId()));
 
-        book.setId(newId);
+        String sql = "insert into books (title, author_id) values (:title, :authorId)";
+        jdbc.update(sql, parameterSource, kh);
+
+        book.setId((Long) kh.getKeys().get("id"));
         batchInsertGenresRelationsFor(book);
 
         return book;
@@ -187,7 +191,7 @@ public class JdbcBookRepository implements BookRepository {
     private void removeGenresRelationsFor(Book book) {
         Optional<Book> optionalBook = findById(book.getId());
         if (optionalBook.isEmpty()) {
-            throw new EntityNotFoundException("Book with id = %s is not found".formatted(book.getId()));
+            throw new EntityNotFoundException("Book with id = %s not found".formatted(book.getId()));
         }
 
         String sql = "delete from books_genres " +
