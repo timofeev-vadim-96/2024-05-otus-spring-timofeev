@@ -3,8 +3,3 @@ spring:
     url: jdbc:postgresql://localhost:5432/otus
     username: postgres
     password: admin
-  sql:
-    init:
-      mode: embedded
-      data-locations: data.sql
-      schema-locations: schema.sql

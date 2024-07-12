@@ -1,3 +1,6 @@
+--liquibase formatted sql
+
+--changeset timofeev_vadim:2024-07-11-init
 create table if not exists authors (
     id bigserial,
     full_name varchar(255),

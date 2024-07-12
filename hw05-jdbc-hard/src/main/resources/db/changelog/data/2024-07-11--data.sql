@@ -1,3 +1,7 @@
+--liquibase formatted sql
+
+--changeset timofeev_vadim:2024-07-11-data
+
 insert into authors(full_name)
 values ('Author_1'), ('Author_2'), ('Author_3');
 
