@@ -3,3 +3,8 @@ spring:
     url: jdbc:postgresql://localhost:5432/otus
     username: postgres
     password: admin
+  jpa:
+    generate-ddl: false
+    hibernate:
+      ddl-auto: none
+    show-sql: true

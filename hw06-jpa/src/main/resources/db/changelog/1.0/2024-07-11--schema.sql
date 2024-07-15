@@ -15,7 +15,7 @@ create table if not exists genres (
 
 create table if not exists books (
     id bigserial,
-    title varchar(255),
+    title varchar(255) UNIQUE NOT NULL,
     author_id bigint references authors (id) on delete cascade,
     primary key (id)
 );
