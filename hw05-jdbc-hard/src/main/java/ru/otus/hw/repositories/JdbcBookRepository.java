@@ -23,7 +23,6 @@ import java.util.Optional;
 import java.util.List;
 import java.util.Map;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
@@ -33,27 +32,24 @@ import java.util.stream.Collectors;
 public class JdbcBookRepository implements BookRepository {
     private final GenreRepository genreRepository;
 
-    private final AuthorRepository authorRepository;
-
     private final NamedParameterJdbcTemplate jdbc;
 
     @Override
     public Optional<Book> findById(long id) {
         try {
-            String sqlForBook = "select books.id, books.title, books.author_id, authors.full_name " +
-                    "from books " +
-                    "join authors " +
-                    "on books.author_id = authors.id " +
-                    "where books.id = :id";
-
+            String sqlForBook = "select books.id, books.title, books.author_id, " +
+                    "authors.full_name, " +
+                    "genres.id, genres.name as genre_name\n" +
+                    "                    from books\n" +
+                    "                    join authors\n" +
+                    "                    on books.author_id = authors.id\n" +
+                    "                    join books_genres\n" +
+                    "                    on books.id = books_genres.book_id\n" +
+                    "                    join genres\n" +
+                    "                    on books_genres.genre_id = genres.id\n" +
+                    "                    where books.id = 1;";
             Book book = jdbc.queryForObject
-                    (sqlForBook, Map.of("id", id), new BookRowMapper()
-                    );
-
-            List<Long> genreIds = getGenreIdsByBookId(id);
-            List<Genre> bookGenres = genreRepository.findAllByIds(new HashSet<>(genreIds));
-
-            book.setGenres(bookGenres);
+                    (sqlForBook, Map.of("id", id), new BookWithGenresRowMapper());
 
             return Optional.of(book);
         } catch (DataAccessException e) {
@@ -91,7 +87,7 @@ public class JdbcBookRepository implements BookRepository {
                 "join authors " +
                 "on books.author_id = authors.id";
 
-        return jdbc.query(sql, Map.of(), new BookRowMapper());
+        return jdbc.query(sql, Map.of(), new BookWithoutGenresRowMapper());
     }
 
     private List<BookGenreRelation> getAllGenreRelations() {
@@ -136,11 +132,6 @@ public class JdbcBookRepository implements BookRepository {
     }
 
     private Book insert(Book book) {
-        Optional<Author> author = authorRepository.findById(book.getAuthor().getId());
-        if (author.isEmpty()) {
-            throw new EntityNotFoundException("Author with an id = %d not found");
-        }
-
         KeyHolder kh = new GeneratedKeyHolder();
         MapSqlParameterSource parameterSource = new MapSqlParameterSource();
         parameterSource.addValues(Map.of("title", book.getTitle(), "authorId", book.getAuthor().getId()));
@@ -157,13 +148,7 @@ public class JdbcBookRepository implements BookRepository {
     private Book update(Book book) {
         String sql = "update books set title = :title, author_id = :authorId where id = :id";
 
-        Optional<Author> author = authorRepository.findById(book.getAuthor().getId());
-        if (author.isEmpty()) {
-            throw new EntityNotFoundException("Author with an id = %d not found"
-                    .formatted(book.getAuthor().getId()));
-        }
-
-        jdbc.update(sql, Map.of(
+        int updated = jdbc.update(sql, Map.of(
                         "title", book.getTitle(),
                         "authorId", book.getAuthor().getId(),
                         "id", book.getId()
@@ -171,21 +156,21 @@ public class JdbcBookRepository implements BookRepository {
         );
 
         // Выбросить EntityNotFoundException если не обновлено ни одной записи в БД
+        if (updated == 0) {
+            throw new EntityNotFoundException("Book with id = %d not found".formatted(book.getId()));
+        }
+
         removeGenresRelationsFor(book);
         batchInsertGenresRelationsFor(book);
 
-        return findById(book.getId()).get();
+        return book;
     }
 
     private void batchInsertGenresRelationsFor(Book book) {
         SqlParameterSource[] batch = SqlParameterSourceUtils.createBatch(book.getGenres().toArray());
         String sql = "insert into books_genres (book_id, genre_id) values (%d, :id)".formatted(book.getId());
 
-        int[] updated = jdbc.batchUpdate(sql, batch);
-
-        if (updated.length == 0) {
-            throw new EntityNotFoundException("Not a single entry has been updated");
-        }
+        jdbc.batchUpdate(sql, batch);
     }
 
     private void removeGenresRelationsFor(Book book) {
@@ -197,20 +182,10 @@ public class JdbcBookRepository implements BookRepository {
         String sql = "delete from books_genres " +
                 "where book_id = :id";
 
-        int removed = jdbc.update(sql, Map.of("id", book.getId()));
-        if (removed == 0) {
-            throw new EntityNotFoundException(
-                    "When trying to delete genres for a book with an id = %d, they were not found"
-                            .formatted(book.getId()));
-        }
+        jdbc.update(sql, Map.of("id", book.getId()));
     }
 
-    private List<Long> getGenreIdsByBookId(long bookId) {
-        String sqlForGenresIds = "select genre_id from books_genres where book_id = :id";
-        return jdbc.queryForList(sqlForGenresIds, Map.of("id", bookId), Long.class);
-    }
-
-    private static class BookRowMapper implements RowMapper<Book> {
+    private static class BookWithoutGenresRowMapper implements RowMapper<Book> {
         @Override
         public Book mapRow(ResultSet rs, int rowNum) throws SQLException {
             Author author = new Author(
@@ -223,6 +198,24 @@ public class JdbcBookRepository implements BookRepository {
                     rs.getString("title"),
                     author,
                     new ArrayList<>());
+        }
+    }
+
+    private static class BookWithGenresRowMapper implements RowMapper<Book> {
+        final Book book = new Book();
+        @Override
+        public Book mapRow(ResultSet rs, int rowNum) throws SQLException {
+            if (book.getId() == 0) {
+                book.setId(rs.getLong("book.id"));
+                book.setTitle(rs.getString("title"));
+                book.setAuthor(
+                        new Author(
+                                rs.getLong("author_id"),
+                                rs.getString("full_name")));
+            }
+            Genre genre = new Genre(rs.getLong("genres.id"), "genre_name");
+            book.getGenres().add(genre);
+            return book;
         }
     }
 
