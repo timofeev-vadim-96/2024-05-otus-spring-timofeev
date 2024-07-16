@@ -1,8 +1,14 @@
 package ru.otus.hw.repositories;
 
-import jakarta.persistence.*;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.EntityGraph;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.Query;
+import jakarta.persistence.NoResultException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,8 +62,10 @@ public class JpaBookRepository implements BookRepository {
             em.merge(book);
             return book;
         }
-        em.merge(book);
-        return findById(book.getId()).get();
+        Book merged = em.merge(book);
+        Hibernate.initialize(merged.getGenres());
+        Hibernate.initialize(merged.getAuthor());
+        return merged;
     }
 
     @Override

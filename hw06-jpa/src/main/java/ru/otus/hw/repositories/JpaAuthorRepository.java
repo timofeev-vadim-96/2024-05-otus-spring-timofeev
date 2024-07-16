@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-@Transactional
 public class JpaAuthorRepository implements AuthorRepository {
     @PersistenceContext
     private final EntityManager em;
