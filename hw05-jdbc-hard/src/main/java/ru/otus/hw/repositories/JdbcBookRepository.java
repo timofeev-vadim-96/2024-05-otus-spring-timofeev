@@ -1,8 +1,8 @@
 package ru.otus.hw.repositories;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -20,8 +20,8 @@ import ru.otus.hw.models.Genre;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Optional;
-import java.util.List;
 import java.util.Map;
+import java.util.List;
 import java.util.Collections;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
@@ -36,25 +36,25 @@ public class JdbcBookRepository implements BookRepository {
 
     @Override
     public Optional<Book> findById(long id) {
-        try {
-            String sqlForBook = "select books.id, books.title, books.author_id, " +
-                    "authors.full_name, " +
-                    "genres.id, genres.name as genre_name\n" +
-                    "                    from books\n" +
-                    "                    join authors\n" +
-                    "                    on books.author_id = authors.id\n" +
-                    "                    join books_genres\n" +
-                    "                    on books.id = books_genres.book_id\n" +
-                    "                    join genres\n" +
-                    "                    on books_genres.genre_id = genres.id\n" +
-                    "                    where books.id = 1;";
-            Book book = jdbc.queryForObject
-                    (sqlForBook, Map.of("id", id), new BookWithGenresRowMapper());
+        String sqlForBook = "select books.id as b_id, books.title, books.author_id, " +
+                "authors.full_name, " +
+                "genres.id as g_id, genres.name as genre_name\n" +
+                "                    from books\n" +
+                "                    join authors\n" +
+                "                    on books.author_id = authors.id\n" +
+                "                    join books_genres\n" +
+                "                    on books.id = books_genres.book_id\n" +
+                "                    join genres\n" +
+                "                    on books_genres.genre_id = genres.id\n" +
+                "                    where books.id = :id";
+        List<Book> book = jdbc.query
+                (sqlForBook, Map.of("id", id), new BookWithGenresRowMapper());
 
-            return Optional.of(book);
-        } catch (DataAccessException e) {
+        if (book.isEmpty()) {
             return Optional.empty();
         }
+
+        return Optional.of(book.get(0));
     }
 
     @Override
@@ -202,19 +202,26 @@ public class JdbcBookRepository implements BookRepository {
     }
 
     private static class BookWithGenresRowMapper implements RowMapper<Book> {
-        final Book book = new Book();
+        @Getter
+        private final Book book = new Book();
+
         @Override
         public Book mapRow(ResultSet rs, int rowNum) throws SQLException {
             if (book.getId() == 0) {
-                book.setId(rs.getLong("book.id"));
+                book.setId(rs.getLong("b_id"));
                 book.setTitle(rs.getString("title"));
                 book.setAuthor(
                         new Author(
                                 rs.getLong("author_id"),
                                 rs.getString("full_name")));
+                book.setGenres(new ArrayList<>());
             }
-            Genre genre = new Genre(rs.getLong("genres.id"), "genre_name");
+            Genre genre = new Genre(
+                    rs.getLong("g_id"),
+                    rs.getString("genre_name"));
+
             book.getGenres().add(genre);
+
             return book;
         }
     }
