@@ -11,8 +11,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.otus.hw.exceptions.EntityNotFoundException;
 import ru.otus.hw.models.Comment;
-import ru.otus.hw.repositories.JpaBookRepository;
-import ru.otus.hw.repositories.JpaCommentRepository;
+import ru.otus.hw.repositories.BookRepositoryCustomImpl;
 
 import java.util.List;
 
@@ -20,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("Сервис для работы с комментариями")
 @DataJpaTest
-@Import({CommentServiceImpl.class, JpaCommentRepository.class, JpaBookRepository.class})
+@Import({CommentServiceImpl.class, BookRepositoryCustomImpl.class})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 @Transactional(propagation = Propagation.NEVER)
 class CommentServiceImplTest {

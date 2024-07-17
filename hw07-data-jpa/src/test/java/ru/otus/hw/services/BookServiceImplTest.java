@@ -14,9 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.otus.hw.exceptions.EntityNotFoundException;
 import ru.otus.hw.models.Book;
 import ru.otus.hw.models.Genre;
-import ru.otus.hw.repositories.JpaAuthorRepository;
-import ru.otus.hw.repositories.JpaBookRepository;
-import ru.otus.hw.repositories.JpaGenreRepository;
+import ru.otus.hw.repositories.BookRepositoryCustomImpl;
 
 import java.util.List;
 import java.util.Optional;
@@ -27,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("Сервис для работы с книгами")
 @DataJpaTest
-@Import({BookServiceImpl.class, JpaGenreRepository.class, JpaAuthorRepository.class, JpaBookRepository.class})
+@Import({BookServiceImpl.class, BookRepositoryCustomImpl.class})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 @Transactional(propagation = Propagation.NEVER)
 class BookServiceImplTest {

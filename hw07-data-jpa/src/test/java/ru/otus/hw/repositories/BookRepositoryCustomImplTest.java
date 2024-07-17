@@ -23,27 +23,27 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("Репозиторий на основе JPA для работы с книгами")
 @DataJpaTest
-@Import({JpaBookRepository.class, JpaGenreRepository.class, JpaAuthorRepository.class})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
+@Import({BookRepositoryCustomImpl.class})
 @Transactional(propagation = Propagation.NEVER)
-class JpaBookRepositoryTest {
-    private static final int BOOK_LIST_MIN_SIZE = 2;
+class BookRepositoryCustomImplTest {
+    private static final int BOOK_LIST_Size = 3;
 
     @Autowired
-    private JpaBookRepository bookRepository;
+    private BookRepositoryCustom bookRepository;
 
     @Autowired
-    private JpaAuthorRepository authorRepository;
+    private AuthorRepository authorRepository;
 
     @Autowired
-    private JpaGenreRepository genreRepository;
+    private GenreRepository genreRepository;
 
     @Autowired
     private TestEntityManager em;
 
     @DisplayName("должен загружать книгу по id")
     @ParameterizedTest
-    @ValueSource(longs = {1, 2})
+    @ValueSource(longs = {1, 2, 3})
     @Transactional(readOnly = true)
     void shouldReturnCorrectBookById(long bookId) {
         Book expected = em.find(Book.class, bookId);
@@ -51,8 +51,8 @@ class JpaBookRepositoryTest {
 
         assertTrue(actual.isPresent());
         assertEquals(expected, actual.get());
-        assertDoesNotThrow(()-> actual.get().getAuthor().getFullName());
-        assertDoesNotThrow(()-> actual.get().getGenres().get(0));
+        assertDoesNotThrow(() -> actual.get().getAuthor().getFullName());
+        assertDoesNotThrow(() -> actual.get().getGenres().get(0));
     }
 
     @DisplayName("должен возвращать Optional.empty() при поиске по несущест. id")
@@ -71,16 +71,16 @@ class JpaBookRepositoryTest {
 
         assertFalse(actualBooks.isEmpty());
         assertTrue(
-                actualBooks.size() >= BOOK_LIST_MIN_SIZE);
+                actualBooks.size() >= BOOK_LIST_Size);
         assertTrue(actualBooks.contains(expectedFirstBook));
-        assertDoesNotThrow(()-> actualBooks.get(0).getAuthor().getFullName());
-        assertDoesNotThrow(()-> actualBooks.get(0).getGenres().get(0));
+        assertDoesNotThrow(() -> actualBooks.get(0).getAuthor().getFullName());
+        assertDoesNotThrow(() -> actualBooks.get(0).getGenres().get(0));
     }
 
     @DisplayName("должен сохранять новую книгу")
     @Test
     void shouldSaveNewBook() {
-        Author author = authorRepository.findById( 1L).get();
+        Author author = authorRepository.findById(1L).get();
         Genre genre = genreRepository.findAllByIds(Set.of(1L)).get(0);
         Book expectedBook = new Book(0, "BookTitle" + Integer.MAX_VALUE, author,
                 List.of(genre));
@@ -109,13 +109,5 @@ class JpaBookRepositoryTest {
         assertNotEquals(oldConditionBook, actualBook);
         assertEquals(updatedBook, actualBook);
         assertEquals(UPDATED_TITLE, actualBook.getTitle());
-    }
-
-    @DisplayName("должен удалять книгу по id ")
-    @Test
-    void shouldDeleteBook() {
-        assertTrue(bookRepository.findById(3L).isPresent());
-        bookRepository.deleteById(3L);
-        assertTrue(bookRepository.findById(3L).isEmpty());
     }
 }
