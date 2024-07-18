@@ -19,11 +19,11 @@ import ru.otus.hw.models.Genre;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Optional;
-import java.util.Map;
-import java.util.List;
-import java.util.Collections;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Repository
@@ -109,7 +109,9 @@ public class JdbcBookRepository implements BookRepository {
      */
     private void mergeBooksInfo(List<Book> booksWithoutGenres, List<Genre> genres,
                                 List<BookGenreRelation> relations) {
-        Collections.sort(genres, (o1, o2) -> Long.compare(o1.getId(), o2.getId()));
+        Map<Long, Genre> genresMap = genres.stream()
+                .collect(Collectors
+                        .toMap(Genre::getId, Function.identity()));
 
         for (Book book : booksWithoutGenres) {
             List<Long> bookGenresIds = relations.stream()
@@ -119,12 +121,7 @@ public class JdbcBookRepository implements BookRepository {
 
             List<Genre> bookGenres = new ArrayList<>();
             for (Long id : bookGenresIds) {
-                int index = Collections
-                        .binarySearch(genres.stream()
-                                        .map(g -> g.getId()).collect(Collectors.toList()),
-                                id,
-                                ((index1, index2) -> Long.compare(index1, index2)));
-                bookGenres.add(genres.get(index));
+                bookGenres.add(genresMap.get(id));
             }
 
             book.setGenres(bookGenres);
