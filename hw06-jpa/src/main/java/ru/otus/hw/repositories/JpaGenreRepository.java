@@ -5,8 +5,6 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import ru.otus.hw.models.Genre;
 
 import java.util.List;
@@ -19,7 +17,6 @@ public class JpaGenreRepository implements GenreRepository {
     private final EntityManager em;
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, readOnly = true)
     public List<Genre> findAll() {
         String sql = "select g from Genre g";
 
@@ -29,7 +26,6 @@ public class JpaGenreRepository implements GenreRepository {
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, readOnly = true)
     public List<Genre> findAllByIds(Set<Long> ids) {
         if (ids.isEmpty()) {
             return List.of();

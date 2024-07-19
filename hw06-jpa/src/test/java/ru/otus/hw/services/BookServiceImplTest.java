@@ -23,7 +23,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Сервис для работы с книгами")
 @DataJpaTest
@@ -80,13 +84,13 @@ class BookServiceImplTest {
                 .collect(Collectors.toSet()));
         assertEquals(expectedAuthorId, actual.getAuthor().getId());
         assertTrue(books.stream()
-                .anyMatch(b-> b.getAuthor().getId() == expectedAuthorId &&
+                .anyMatch(b -> b.getAuthor().getId() == expectedAuthorId &&
                         b.getTitle().equals(expectedTitle) &&
                         b.getGenres().size() == expectedGenresIds.size()));
         assertTrue(expectedGenresIds
                 .containsAll(books
                         .stream()
-                        .filter(b-> b.getTitle().equals(expectedTitle))
+                        .filter(b -> b.getTitle().equals(expectedTitle))
                         .findFirst().get()
                         .getGenres()
                         .stream()
@@ -98,29 +102,29 @@ class BookServiceImplTest {
     void insertNegative() {
         assertThrows(
                 IllegalArgumentException.class,
-                ()-> bookService.insert("someTitle", 1L, Set.of()));
+                () -> bookService.insert("someTitle", 1L, Set.of()));
         assertThrows(
                 EntityNotFoundException.class,
-                ()-> bookService.insert("someTitle", Long.MAX_VALUE, Set.of(1L, 2L)));
+                () -> bookService.insert("someTitle", Long.MAX_VALUE, Set.of(1L, 2L)));
         assertThrows(
                 EntityNotFoundException.class,
-                ()-> bookService.insert("someTitle", 1L, Set.of(1L, Long.MAX_VALUE)));
+                () -> bookService.insert("someTitle", 1L, Set.of(1L, Long.MAX_VALUE)));
     }
 
     @Test
     void updateNegative() {
         assertThrows(
                 EntityNotFoundException.class,
-                ()->bookService.update(Long.MIN_VALUE, "someTitle", 1L, Set.of(1L, 2L)));
+                () -> bookService.update(Long.MIN_VALUE, "someTitle", 1L, Set.of(1L, 2L)));
         assertThrows(
                 IllegalArgumentException.class,
-                ()-> bookService.update(1L, "someTitle", 1L, Set.of()));
+                () -> bookService.update(1L, "someTitle", 1L, Set.of()));
         assertThrows(
                 EntityNotFoundException.class,
-                ()-> bookService.update(1L, "someTitle", Long.MAX_VALUE, Set.of(1L, 2L)));
+                () -> bookService.update(1L, "someTitle", Long.MAX_VALUE, Set.of(1L, 2L)));
         assertThrows(
                 EntityNotFoundException.class,
-                ()-> bookService.update(1L, "someTitle", 1L, Set.of(1L, Long.MAX_VALUE)));
+                () -> bookService.update(1L, "someTitle", 1L, Set.of(1L, Long.MAX_VALUE)));
     }
 
     @Test
@@ -137,7 +141,6 @@ class BookServiceImplTest {
                 expectedGenresIds);
         Book book = bookService.findById(1L).get();
 
-        assertNotEquals(oldConditionBook, book);
         assertEquals(actual, book);
         assertEquals(expectedGenresIds, actual.getGenres()
                 .stream()

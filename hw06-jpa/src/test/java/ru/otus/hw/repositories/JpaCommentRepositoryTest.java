@@ -9,21 +9,22 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import ru.otus.hw.models.Book;
 import ru.otus.hw.models.Comment;
 
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Репозиторий на основе JPA для работы с комментариями")
 @DataJpaTest
 @Import({JpaBookRepository.class, JpaCommentRepository.class})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
-@Transactional(propagation = Propagation.NEVER)
 class JpaCommentRepositoryTest {
     @Autowired
     private JpaCommentRepository commentRepository;
@@ -44,7 +45,6 @@ class JpaCommentRepositoryTest {
 
     @ParameterizedTest
     @ValueSource(longs = {1, 2})
-    @Transactional(readOnly = true)
     void findById(long id) {
         Comment expected = em.find(Comment.class, id);
 
@@ -56,15 +56,26 @@ class JpaCommentRepositoryTest {
 
     @Test
     void findByIdNegative() {
-        Optional<Comment> comment = commentRepository.findById(Long.MAX_VALUE);
+        Comment comment = em.find(Comment.class, Long.MAX_VALUE);
 
-        assertTrue(comment.isEmpty());
+        assertNull(comment);
     }
 
     @Test
-    void save() {
-        Book book = bookRepository.findById(1L).get();
-        Comment comment = new Comment(0, "some text", book);
+    void saveWhenInsert() {
+        Book book = em.find(Book.class, 1L);
+        Comment comment = new Comment(null, "some text", book);
+
+        Comment actual = commentRepository.save(comment);
+
+        assertEquals(comment.getText(), actual.getText());
+        assertEquals(comment.getBook().getId(), actual.getBook().getId());
+    }
+
+    @Test
+    void saveWhenUpdate() {
+        Book book = em.find(Book.class, 1L);
+        Comment comment = new Comment(1L, "some text", book);
 
         Comment actual = commentRepository.save(comment);
 
@@ -74,8 +85,8 @@ class JpaCommentRepositoryTest {
 
     @Test
     void deleteById() {
-        assertTrue(commentRepository.findById(3L).isPresent());
+        assertNotNull(em.find(Comment.class, 3L));
         commentRepository.deleteById(3L);
-        assertTrue(commentRepository.findById(3L).isEmpty());
+        assertNull(em.find(Comment.class, 3L));
     }
 }

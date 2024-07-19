@@ -4,7 +4,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.transaction.annotation.Propagation;
@@ -16,7 +15,10 @@ import ru.otus.hw.repositories.JpaCommentRepository;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Сервис для работы с комментариями")
 @DataJpaTest
@@ -25,9 +27,6 @@ import static org.junit.jupiter.api.Assertions.*;
 @Transactional(propagation = Propagation.NEVER)
 class CommentServiceImplTest {
     private static final long COMMENT_LIST_SIZE_BY_1_BOOK = 1;
-
-    @Autowired
-    private TestEntityManager em;
 
     @Autowired
     private CommentServiceImpl commentService;
@@ -51,15 +50,15 @@ class CommentServiceImplTest {
         assertEquals(expectedText, actual.getText());
         assertEquals(expectedBookId, actual.getBook().getId());
         assertTrue(allByBookId.stream()
-                .anyMatch(c-> c.getBook().getId() == expectedBookId &&
-                c.getText().equals(expectedText)));
+                .anyMatch(c -> c.getBook().getId() == expectedBookId &&
+                        c.getText().equals(expectedText)));
     }
 
     @Test
     void insertNegative() {
         assertThrows(
                 EntityNotFoundException.class,
-                ()-> commentService.insert("someText", Long.MIN_VALUE)
+                () -> commentService.insert("someText", Long.MIN_VALUE)
         );
     }
 
@@ -78,7 +77,7 @@ class CommentServiceImplTest {
     void updateNegative() {
         assertThrows(
                 EntityNotFoundException.class,
-                ()-> commentService.update("someText", Long.MIN_VALUE)
+                () -> commentService.update("someText", Long.MIN_VALUE)
         );
     }
 

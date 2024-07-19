@@ -8,19 +8,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import ru.otus.hw.models.Author;
 
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Репозиторий на основе JPA для работы с авторами")
 @DataJpaTest
 @Import(value = {JpaAuthorRepository.class})
-@Transactional(propagation = Propagation.NEVER)
 class JpaAuthorRepositoryTest {
     private static final long AUTHORS_LIST_MAX_SIZE = 3;
 
@@ -42,7 +41,6 @@ class JpaAuthorRepositoryTest {
 
     @ParameterizedTest
     @ValueSource(longs = {1, 2, 3})
-    @Transactional(readOnly = true)
     void findById(long id) {
         Author expected = em.find(Author.class, id);
 

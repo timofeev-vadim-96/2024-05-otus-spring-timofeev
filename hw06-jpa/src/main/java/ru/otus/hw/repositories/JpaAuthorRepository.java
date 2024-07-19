@@ -1,12 +1,9 @@
 package ru.otus.hw.repositories;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import ru.otus.hw.models.Author;
 
 import java.util.List;
@@ -22,7 +19,6 @@ public class JpaAuthorRepository implements AuthorRepository {
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, readOnly = true)
     public List<Author> findAll() {
         String sql = "select a from Author a";
 
@@ -31,17 +27,9 @@ public class JpaAuthorRepository implements AuthorRepository {
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, readOnly = true)
     public Optional<Author> findById(long id) {
-        try {
-            String sql = "select a from Author a where id = :id";
+        Author author = em.find(Author.class, id);
 
-            TypedQuery<Author> query = em.createQuery(sql, Author.class);
-            query.setParameter("id", id);
-
-            return Optional.of(query.getSingleResult());
-        } catch (NoResultException e) {
-            return Optional.empty();
-        }
+        return Optional.ofNullable(author);
     }
 }

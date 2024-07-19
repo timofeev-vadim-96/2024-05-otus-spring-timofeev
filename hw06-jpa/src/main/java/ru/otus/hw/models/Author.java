@@ -7,11 +7,11 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.util.Objects;
+import lombok.ToString;
 
 @Entity
 @Getter
@@ -19,33 +19,13 @@ import java.util.Objects;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "authors")
+@EqualsAndHashCode(of = {"id"})
+@ToString(of = {"id", "fullName"})
 public class Author {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Column(name = "full_name")
     private String fullName;
-
-    @Override
-    public String toString() {
-        return "Id: %d, FullName: %s".formatted(id, fullName);
-    }
-
-    @Override
-    public boolean equals(Object object) {
-        if (this == object) {
-            return true;
-        }
-        if (object == null || getClass() != object.getClass()) {
-            return false;
-        }
-        Author author = (Author) object;
-        return id == author.id && Objects.equals(fullName, author.fullName);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, fullName);
-    }
 }

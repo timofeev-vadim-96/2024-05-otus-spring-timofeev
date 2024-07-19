@@ -1,15 +1,11 @@
 package ru.otus.hw.repositories;
 
-import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
-import jakarta.persistence.NoResultException;
-import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import ru.otus.hw.models.Comment;
 
 import java.util.List;
@@ -23,7 +19,6 @@ public class JpaCommentRepository implements CommentRepository {
     private final EntityManager em;
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, readOnly = true)
     public List<Comment> findAllByBookId(long bookId) {
         String sql = "SELECT c FROM Comment c where c.book.id = :id";
         TypedQuery<Comment> query = em.createQuery(sql, Comment.class);
@@ -33,23 +28,15 @@ public class JpaCommentRepository implements CommentRepository {
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, readOnly = true)
     public Optional<Comment> findById(long id) {
-        try {
-            String sql = "select c from Comment c where c.id = :id";
-            TypedQuery<Comment> query = em.createQuery(sql, Comment.class);
-            query.setParameter("id", id);
+        Comment comment = em.find(Comment.class, id);
 
-            return Optional.of(query.getSingleResult());
-        } catch (NoResultException e) {
-            return Optional.empty();
-        }
+        return Optional.ofNullable(comment);
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED)
     public Comment save(Comment comment) {
-        if (comment.getId() == 0) {
+        if (comment.getId() == null) {
             em.persist(comment);
             return comment;
         }
@@ -57,11 +44,9 @@ public class JpaCommentRepository implements CommentRepository {
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED)
     public void deleteById(long id) {
-        String sql = "delete from Comment c where c.id = :id";
-        Query query = em.createQuery(sql);
-        query.setParameter("id", id);
-        query.executeUpdate();
+        Comment comment = em.find(Comment.class, id);
+
+        em.remove(comment);
     }
 }

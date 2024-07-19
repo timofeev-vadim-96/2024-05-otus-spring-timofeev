@@ -10,7 +10,6 @@ import ru.otus.hw.repositories.BookRepository;
 import ru.otus.hw.repositories.CommentRepository;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -28,27 +27,26 @@ public class CommentServiceImpl implements CommentService {
     @Override
     @Transactional
     public Comment insert(String text, long bookId) {
-        Optional<Book> book = bookRepository.findById(bookId);
-        if (book.isEmpty()) {
-            throw new EntityNotFoundException("Book with id = %d not found".formatted(bookId));
-        }
+        Book book = bookRepository
+                .findById(bookId)
+                .orElseThrow(() -> new EntityNotFoundException("Book with id = %d not found".formatted(bookId)));
 
-        Comment comment = new Comment(0, text, book.get());
+        Comment comment = new Comment(null, text, book);
         return commentRepository.save(comment);
     }
 
     @Override
+    @Transactional
     public Comment update(String text, long id) {
-        Optional<Comment> optionalComment = commentRepository.findById(id);
-        if (optionalComment.isEmpty()) {
-            throw new EntityNotFoundException("Comment with id = %d not found".formatted(id));
-        }
-        Comment comment = optionalComment.get();
+        Comment comment = commentRepository
+                .findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Comment with id = %d not found".formatted(id)));
         comment.setText(text);
         return commentRepository.save(comment);
     }
 
     @Override
+    @Transactional
     public void deleteById(long id) {
         commentRepository.deleteById(id);
     }

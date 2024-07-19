@@ -1,17 +1,13 @@
 package ru.otus.hw.repositories;
 
+import jakarta.persistence.EntityGraph;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.EntityGraph;
 import jakarta.persistence.TypedQuery;
-import jakarta.persistence.Query;
-import jakarta.persistence.NoResultException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import ru.otus.hw.models.Book;
 
 import java.util.List;
@@ -27,24 +23,18 @@ public class JpaBookRepository implements BookRepository {
     private final EntityManager em;
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, readOnly = true)
     public Optional<Book> findById(long id) {
-        try {
-            String sqlForBook = "select b from Book b left join fetch b.genres where b.id = :id";
-            EntityGraph<?> entityGraph = em.getEntityGraph("author-entity-graph");
+        String sqlForBook = "select b from Book b left join fetch b.genres where b.id = :id";
+        EntityGraph<?> entityGraph = em.getEntityGraph("author-entity-graph");
 
-            TypedQuery<Book> query = em.createQuery(sqlForBook, Book.class);
-            query.setParameter("id", id);
-            query.setHint(FETCH.getKey(), entityGraph);
+        TypedQuery<Book> query = em.createQuery(sqlForBook, Book.class);
+        query.setParameter("id", id);
+        query.setHint(FETCH.getKey(), entityGraph);
 
-            return Optional.of(query.getSingleResult());
-        } catch (NoResultException e) {
-            return Optional.empty();
-        }
+        return query.getResultList().isEmpty() ? Optional.empty() : Optional.of(query.getResultList().get(0));
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED, readOnly = true)
     public List<Book> findAll() {
         String sqlForBook = "select b from Book b left join fetch b.genres";
         EntityGraph<?> entityGraph = em.getEntityGraph("author-entity-graph");
@@ -56,10 +46,9 @@ public class JpaBookRepository implements BookRepository {
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED)
     public Book save(Book book) {
-        if (book.getId() == 0) {
-            em.merge(book);
+        if (book.getId() == null) {
+            em.persist(book);
             return book;
         }
         Book merged = em.merge(book);
@@ -69,11 +58,10 @@ public class JpaBookRepository implements BookRepository {
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRED)
     public void deleteById(long id) {
-        String sql = "delete from Book b where b.id = :id";
-        Query query = em.createQuery(sql);
-        query.setParameter("id", id);
-        query.executeUpdate();
+        Book book = em.find(Book.class, id);
+        if (book != null) {
+            em.remove(book);
+        }
     }
 }
