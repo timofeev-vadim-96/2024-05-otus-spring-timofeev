@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.otus.hw.exceptions.EntityNotFoundException;
-import ru.otus.hw.models.Author;
 import ru.otus.hw.models.Book;
 import ru.otus.hw.models.Genre;
 import ru.otus.hw.repositories.AuthorRepository;
@@ -40,14 +39,39 @@ public class BookServiceImpl implements BookService {
 
     @Override
     @Transactional
-    public Book insert(String title, long authorId, Set<Long> genresIds) {
-        return save(null, title, authorId, genresIds);
+    public Book create(String title, long authorId, Set<Long> genresIds) {
+        if (isEmpty(genresIds)) {
+            throw new IllegalArgumentException("Genres ids must not be null");
+        }
+
+        var author = authorRepository.findById(authorId)
+                .orElseThrow(() -> new EntityNotFoundException("Author with id %d not found".formatted(authorId)));
+        var genres = getGenres(genresIds);
+
+        Book book = new Book(null, title, author, genres);
+
+        return bookRepository.save(book);
     }
 
     @Override
     @Transactional
     public Book update(long id, String title, long authorId, Set<Long> genresIds) {
-        return save(id, title, authorId, genresIds);
+        if (isEmpty(genresIds)) {
+            throw new IllegalArgumentException("Genres ids must not be null");
+        }
+
+        var author = authorRepository.findById(authorId)
+                .orElseThrow(() -> new EntityNotFoundException("Author with id %d not found".formatted(authorId)));
+        var genres = getGenres(genresIds);
+
+        Book book = bookRepository
+                .findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Book with id = %d not found".formatted(id)));
+        book.setTitle(title);
+        book.setAuthor(author);
+        book.setGenres(genres);
+
+        return bookRepository.save(book);
     }
 
     @Override
@@ -56,36 +80,11 @@ public class BookServiceImpl implements BookService {
         bookRepository.deleteById(id);
     }
 
-    private Book save(Long id, String title, long authorId, Set<Long> genresIds) {
-        if (isEmpty(genresIds)) {
-            throw new IllegalArgumentException("Genres ids must not be null");
-        }
-
-        var author = authorRepository.findById(authorId)
-                .orElseThrow(() -> new EntityNotFoundException("Author with id %d not found".formatted(authorId)));
+    private List<Genre> getGenres(Set<Long> genresIds) {
         var genres = genreRepository.findAllByIds(genresIds);
         if (isEmpty(genres) || genresIds.size() != genres.size()) {
             throw new EntityNotFoundException("One or all genres with ids %s not found".formatted(genresIds));
         }
-
-        Book book;
-        if (id != null) {
-            book = getBookAndUpdate(id, title, author, genres);
-        } else {
-            book = new Book(null, title, author, genres);
-        }
-
-        return bookRepository.save(book);
-    }
-
-    private Book getBookAndUpdate(Long id, String title, Author author, List<Genre> genres) {
-        Book book;
-        book = bookRepository
-                .findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Book with id = %d not found".formatted(id)));
-        book.setTitle(title);
-        book.setAuthor(author);
-        book.setGenres(genres);
-        return book;
+        return genres;
     }
 }
