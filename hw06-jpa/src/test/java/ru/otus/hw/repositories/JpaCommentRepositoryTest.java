@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.annotation.DirtiesContext;
 import ru.otus.hw.models.Book;
 import ru.otus.hw.models.Comment;
 
@@ -24,13 +23,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DisplayName("Репозиторий на основе JPA для работы с комментариями")
 @DataJpaTest
 @Import({JpaBookRepository.class, JpaCommentRepository.class})
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 class JpaCommentRepositoryTest {
     @Autowired
     private JpaCommentRepository commentRepository;
-
-    @Autowired
-    private JpaBookRepository bookRepository;
 
     @Autowired
     private TestEntityManager em;
