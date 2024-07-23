@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Репозиторий на основе JPA для работы с жанрами")
 @DataJpaTest
-class JpaGenreRepositoryTest {
+class GenreRepositoryTest {
     @Autowired
     private GenreRepository genreRepository;
 
