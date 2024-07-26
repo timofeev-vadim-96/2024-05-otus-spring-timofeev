@@ -25,7 +25,6 @@ class GenreRepositoryTest {
     private TestEntityManager em;
 
     @Test
-    @Transactional(readOnly = true)
     void findAllByIds() {
         Genre genre = em.find(Genre.class, 1L);
 

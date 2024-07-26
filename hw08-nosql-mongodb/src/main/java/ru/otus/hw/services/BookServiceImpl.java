@@ -1,6 +1,7 @@
 package ru.otus.hw.services;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.otus.hw.exceptions.EntityNotFoundException;
@@ -19,6 +20,7 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 
 @RequiredArgsConstructor
 @Service
+@Slf4j
 public class BookServiceImpl implements BookService {
     private final AuthorRepository authorRepository;
 
@@ -28,7 +30,7 @@ public class BookServiceImpl implements BookService {
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<Book> findById(long id) {
+    public Optional<Book> findById(String id) {
         return bookRepository.findById(id);
     }
 
@@ -40,13 +42,13 @@ public class BookServiceImpl implements BookService {
 
     @Override
     @Transactional
-    public Book create(String title, long authorId, Set<Long> genresIds) {
+    public Book create(String title, String authorId, Set<String> genresIds) {
         if (isEmpty(genresIds)) {
             throw new IllegalArgumentException("Genres ids must not be null");
         }
 
         var author = authorRepository.findById(authorId)
-                .orElseThrow(() -> new EntityNotFoundException("Author with id %d not found".formatted(authorId)));
+                .orElseThrow(() -> new EntityNotFoundException("Author with id %s not found".formatted(authorId)));
         var genres = getGenres(genresIds);
 
         Book book = new Book(null, title, author, genres);
@@ -56,17 +58,17 @@ public class BookServiceImpl implements BookService {
 
     @Override
     @Transactional
-    public Book update(long id, String title, long authorId, Set<Long> genresIds) {
+    public Book update(String id, String title, String authorId, Set<String> genresIds) {
         if (isEmpty(genresIds)) {
             throw new IllegalArgumentException("Genres ids must not be null");
         }
 
         var author = authorRepository.findById(authorId)
-                .orElseThrow(() -> new EntityNotFoundException("Author with id %d not found".formatted(authorId)));
+                .orElseThrow(() -> new EntityNotFoundException("Author with id %s not found".formatted(authorId)));
         var genres = getGenres(genresIds);
 
         Book book = bookRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Book with id = %d not found".formatted(id)));
+                .orElseThrow(() -> new EntityNotFoundException("Book with id = %s not found".formatted(id)));
         book.setTitle(title);
         book.setAuthor(author);
         book.setGenres(genres);
@@ -76,12 +78,14 @@ public class BookServiceImpl implements BookService {
 
     @Override
     @Transactional
-    public void deleteById(long id) {
+    public void deleteById(String id) {
         bookRepository.deleteById(id);
     }
 
-    private Set<Genre> getGenres(Set<Long> genresIds) {
+    private Set<Genre> getGenres(Set<String> genresIds) {
         var genres = genreRepository.findAllByIds(genresIds);
+        log.info(genres.toString());
+
         if (isEmpty(genres) || genresIds.size() != genres.size()) {
             throw new EntityNotFoundException("One or all genres with ids %s not found".formatted(genresIds));
         }

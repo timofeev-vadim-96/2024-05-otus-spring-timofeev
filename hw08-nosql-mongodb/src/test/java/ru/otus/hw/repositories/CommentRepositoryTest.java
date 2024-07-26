@@ -23,7 +23,6 @@ class CommentRepositoryTest {
     private TestEntityManager em;
 
     @Test
-    @Transactional(readOnly = true)
     void findAllByBookId() {
         Comment comment = em.find(Comment.class, 1L);
 
@@ -32,5 +31,9 @@ class CommentRepositoryTest {
         assertFalse(allByBookId.isEmpty());
         assertTrue(allByBookId.stream().anyMatch(c -> c.getBook().getId() == 1L));
         assertTrue(allByBookId.contains(comment));
+    }
+
+    @Test
+    void deleteAllByBook_Id() {
     }
 }

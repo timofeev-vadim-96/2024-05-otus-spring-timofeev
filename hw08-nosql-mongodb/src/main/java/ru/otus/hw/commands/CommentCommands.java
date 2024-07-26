@@ -13,28 +13,28 @@ public class CommentCommands {
     private final CommentService commentService;
 
     @Command(description = "Find all by book id. Params: bookId", command = "cbbid")
-    public String findAllByBookId(long bookId) {
+    public String findAllByBookId(String bookId) {
         return commentService.findAllByBookId(bookId).stream()
                 .map(Comment::toString)
                 .collect(Collectors.joining("," + System.lineSeparator()));
     }
 
     @Command(description = "Insert comment. Params: text, bookId", command = "cins")
-    public String insertBook(String text, long bookId) {
+    public String insertBook(String text, String bookId) {
         var savedComment = commentService.insert(text, bookId);
         return savedComment.toString();
     }
 
     // bupd 4 editedBook 3 2,5
     @Command(description = "Update comment. Params: id, text", command = "cupd")
-    public String updateBook(long id, String text) {
+    public String updateBook(String id, String text) {
         var updatedBook = commentService.update(text, id);
         return updatedBook.toString();
     }
 
     // bdel 4
     @Command(description = "Delete comment by id. Params: id", command = "cdel")
-    public void deleteBook(long id) {
+    public void deleteBook(String id) {
         commentService.deleteById(id);
     }
 }
