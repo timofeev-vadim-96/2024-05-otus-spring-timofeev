@@ -2,31 +2,34 @@ package ru.otus.hw.services;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.otus.hw.exceptions.EntityNotFoundException;
+import ru.otus.hw.models.Author;
 import ru.otus.hw.models.Book;
 import ru.otus.hw.models.Genre;
+import ru.otus.hw.repositories.AuthorRepository;
+import ru.otus.hw.repositories.BookRepository;
+import ru.otus.hw.repositories.GenreRepository;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Сервис для работы с книгами")
-@DataJpaTest
+@DataMongoTest
 @Import({BookServiceImpl.class})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 @Transactional(propagation = Propagation.NEVER)
@@ -37,111 +40,151 @@ class BookServiceImplTest {
     private BookServiceImpl bookService;
 
     @Autowired
-    private TestEntityManager em;
+    private BookRepository bookRepository;
 
-    @ParameterizedTest
-    @ValueSource(longs = {1, 2})
-    @Transactional(readOnly = true)
-    void findById(long id) {
-        Book expected = em.find(Book.class, id);
+    @Autowired
+    private AuthorRepository authorRepository;
 
-        Optional<Book> actual = bookService.findById(id);
+    @Autowired
+    private GenreRepository genreRepository;
+
+    @Test
+    void findById() {
+        Book expected = bookRepository.findAll().get(0);
+
+        Optional<Book> actual = bookService.findById(expected.getId());
 
         assertTrue(actual.isPresent());
         assertEquals(expected, actual.get());
-        assertEquals(id, actual.get().getId());
+    }
+
+    @Test
+    void findByIdNegative() {
+        String notExpectedId = "notExpectedId";
+
+        Optional<Book> actual = bookService.findById(notExpectedId);
+
+        assertTrue(actual.isEmpty());
     }
 
     @Test
     void findAll() {
-        Optional<Book> expectedBook = bookService.findById(1L);
-
         List<Book> actualBooks = bookService.findAll();
 
         assertFalse(actualBooks.isEmpty());
         assertTrue(actualBooks.size() >= BOOK_LIST_MIN_SIZE);
-        assertTrue(actualBooks.contains(expectedBook.get()));
     }
 
     @Test
-    void insert() {
-        long expectedAuthorId = 1L;
+    void create() {
+        Author expectedAuthor = authorRepository.findAll().get(0);
         String expectedTitle = "titleToInsert";
-        Set<Long> expectedGenresIds = Set.of(1L, 2L, 5L);
-        Book actual = bookService.create(expectedTitle, expectedAuthorId, expectedGenresIds);
+        Set<Genre> expectedGenres = new HashSet<>(genreRepository.findAll());
+        Book actual = bookService.create(expectedTitle, expectedAuthor.getId(),
+                expectedGenres.stream()
+                        .map(Genre::getId)
+                        .collect(Collectors.toSet()));
 
-        List<Book> books = bookService.findAll();
-        Optional<Book> insertedBookOptional = books.stream()
-                .filter(b -> b.getAuthor().getId() == expectedAuthorId &&
-                        b.getTitle().equals(expectedTitle)).findFirst();
+        Optional<Book> insertedBook = bookRepository.findById(actual.getId());
 
-        assertEquals(expectedTitle, actual.getTitle());
-        assertEquals(expectedGenresIds, actual.getGenres()
-                .stream()
-                .map(Genre::getId)
-                .collect(Collectors.toSet()));
-        assertEquals(expectedAuthorId, actual.getAuthor().getId());
-        assertTrue(insertedBookOptional.isPresent());
-        assertEquals(actual.getTitle(), insertedBookOptional.get().getTitle());
-        assertEquals(actual.getAuthor().getId(), insertedBookOptional.get().getAuthor().getId());
+        assertTrue(insertedBook.isPresent());
+        assertThat(actual)
+                .usingRecursiveComparison()
+                .ignoringFields("genres")
+                .isEqualTo(insertedBook.get());
+        assertThat(insertedBook.get().getGenres()).containsAll(expectedGenres);
     }
 
     @Test
     void insertNegative() {
+        Author expectedAuthor = authorRepository.findAll().get(0);
+        List<Genre> genres = genreRepository.findAll().stream().limit(2).toList();
+
         assertThrows(
                 IllegalArgumentException.class,
-                () -> bookService.create("someTitle", 1L, Set.of()));
+                () -> bookService.create("someTitle", expectedAuthor.getId(), Set.of()));
         assertThrows(
                 EntityNotFoundException.class,
-                () -> bookService.create("someTitle", Long.MAX_VALUE, Set.of(1L, 2L)));
+                () -> bookService.create(
+                        "someTitle",
+                        "unexpectedAuthorId",
+                        Set.of(genres.get(0).getId(), genres.get(1).getId())));
         assertThrows(
                 EntityNotFoundException.class,
-                () -> bookService.create("someTitle", 1L, Set.of(1L, Long.MAX_VALUE)));
+                () -> bookService.create(
+                        "someTitle",
+                        expectedAuthor.getId(),
+                        Set.of(genres.get(0).getId(), "unexpectedGenreId")));
     }
 
     @Test
     void updateNegative() {
+        Author expectedAuthor = authorRepository.findAll().get(0);
+        List<Genre> genres = genreRepository.findAll().stream().limit(2).toList();
+        Book book = bookRepository.findAll().get(0);
+
         assertThrows(
                 EntityNotFoundException.class,
-                () -> bookService.update(Long.MIN_VALUE, "someTitle", 1L, Set.of(1L, 2L)));
+                () -> bookService.update("unexpectedBookId", "someTitle", expectedAuthor.getId(),
+                        Set.of(genres.get(0).getId(), genres.get(1).getId())));
         assertThrows(
                 IllegalArgumentException.class,
-                () -> bookService.update(1L, "someTitle", 1L, Set.of()));
+                () -> bookService.update(
+                        book.getId(),
+                        "someTitle",
+                        expectedAuthor.getId(),
+                        Set.of()));
         assertThrows(
                 EntityNotFoundException.class,
-                () -> bookService.update(1L, "someTitle", Long.MAX_VALUE, Set.of(1L, 2L)));
+                () -> bookService.update(
+                        book.getId(),
+                        "someTitle",
+                        "unexpectedAuthorId",
+                        Set.of(genres.get(0).getId(), genres.get(1).getId())));
         assertThrows(
                 EntityNotFoundException.class,
-                () -> bookService.update(1L, "someTitle", 1L, Set.of(1L, Long.MAX_VALUE)));
+                () -> bookService.update(
+                        book.getId(),
+                        "someTitle",
+                        expectedAuthor.getId(),
+                        Set.of(genres.get(0).getId(), "unexpectedGenreId")));
     }
 
     @Test
     void update() {
-        long expectedAuthorId = 1L;
         String expectedTitle = "titleToUpdate";
-        Set<Long> expectedGenresIds = Set.of(1L, 3L, 6L);
-        Book oldConditionBook = bookService.findById(1L).get();
+        Author expectedAuthor = authorRepository.findAll().get(0);
+        Set<Genre> expectedGenres = genreRepository.findAll()
+                .stream()
+                .limit(2)
+                .collect(Collectors.toSet());
+        Book oldConditionBook = bookRepository.findAll().get(0);
 
         Book actual = bookService.update(
                 oldConditionBook.getId(),
                 expectedTitle,
-                expectedAuthorId,
-                expectedGenresIds);
-        Book book = bookService.findById(1L).get();
+                expectedAuthor.getId(),
+                expectedGenres.stream()
+                        .limit(2)
+                        .map(Genre::getId)
+                        .collect(Collectors.toSet()));
 
-        assertEquals(actual, book);
-        assertEquals(expectedGenresIds, actual.getGenres()
-                .stream()
-                .map(Genre::getId)
-                .collect(Collectors.toSet()));
+        Book bookById = bookRepository.findById(oldConditionBook.getId()).get();
+
+        assertEquals(actual, bookById);
+        assertThat(oldConditionBook)
+                .usingRecursiveComparison()
+                .isNotEqualTo(actual);
         assertEquals(expectedTitle, actual.getTitle());
-        assertEquals(expectedAuthorId, actual.getAuthor().getId());
+        assertEquals(expectedAuthor, actual.getAuthor());
+        assertThat(actual.getGenres()).containsExactlyInAnyOrderElementsOf(expectedGenres);
     }
 
     @Test
     void deleteById() {
-        assertTrue(bookService.findById(3L).isPresent());
-        bookService.deleteById(3L);
-        assertTrue(bookService.findById(3L).isEmpty());
+        String bookId = bookRepository.findAll().get(0).getId();
+
+        bookService.deleteById(bookId);
+        assertTrue(bookRepository.findById(bookId).isEmpty());
     }
 }

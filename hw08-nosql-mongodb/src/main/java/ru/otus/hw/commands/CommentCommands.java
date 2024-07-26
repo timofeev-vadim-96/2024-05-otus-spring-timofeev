@@ -21,7 +21,7 @@ public class CommentCommands {
 
     @Command(description = "Insert comment. Params: text, bookId", command = "cins")
     public String insertBook(String text, String bookId) {
-        var savedComment = commentService.insert(text, bookId);
+        var savedComment = commentService.create(text, bookId);
         return savedComment.toString();
     }
 

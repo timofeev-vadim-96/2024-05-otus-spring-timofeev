@@ -7,7 +7,7 @@ import java.util.List;
 public interface CommentService {
     List<Comment> findAllByBookId(String bookId);
 
-    Comment insert(String text, String bookId);
+    Comment create(String text, String bookId);
 
     Comment update(String text, String id);
 

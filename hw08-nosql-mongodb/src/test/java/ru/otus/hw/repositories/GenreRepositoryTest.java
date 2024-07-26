@@ -4,37 +4,32 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import ru.otus.hw.models.Genre;
 
 import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@DisplayName("Репозиторий на основе JPA для работы с жанрами")
-@DataJpaTest
+@DisplayName("Репозиторий на основе MongoRepo для работы с жанрами")
+@DataMongoTest
 class GenreRepositoryTest {
     @Autowired
     private GenreRepository genreRepository;
 
-    @Autowired
-    private TestEntityManager em;
-
     @Test
     void findAllByIds() {
-        Genre genre = em.find(Genre.class, 1L);
+        List<Genre> all = genreRepository.findAll();
+        String firstGenreId = all.get(0).getId();
+        String secondGenreId = all.get(1).getId();
 
-        List<Genre> genresByIds = genreRepository.findAllByIds(Set.of(1L, 2L));
+        List<Genre> genresByIds = genreRepository.findAllByIds(Set.of(firstGenreId, secondGenreId));
 
         assertFalse(genresByIds.isEmpty());
         Assertions.assertThat(genresByIds)
-                .filteredOn(g -> g.getId() == 1L || g.getId() == 2L)
+                .filteredOn(g -> g.getId().equals(firstGenreId) || g.getId().equals(secondGenreId))
                 .size()
                 .isEqualTo(2);
-        assertTrue(genresByIds.contains(genre));
     }
 }

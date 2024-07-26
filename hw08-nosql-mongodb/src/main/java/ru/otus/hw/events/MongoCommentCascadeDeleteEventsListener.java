@@ -18,6 +18,6 @@ public class MongoCommentCascadeDeleteEventsListener extends AbstractMongoEventL
         var source = event.getSource();
         var id = source.get("_id").toString();
 
-        commentRepository.deleteAllByBook_Id(id);
+        commentRepository.deleteAllByBookId(id);
     }
 }

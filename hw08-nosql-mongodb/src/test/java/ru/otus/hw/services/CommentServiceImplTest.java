@@ -1,90 +1,109 @@
 package ru.otus.hw.services;
 
+import lombok.extern.slf4j.Slf4j;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.otus.hw.exceptions.EntityNotFoundException;
+import ru.otus.hw.models.Book;
 import ru.otus.hw.models.Comment;
+import ru.otus.hw.repositories.BookRepository;
+import ru.otus.hw.repositories.CommentRepository;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Сервис для работы с комментариями")
-@DataJpaTest
+@DataMongoTest
 @Import({CommentServiceImpl.class})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 @Transactional(propagation = Propagation.NEVER)
+@Slf4j
 class CommentServiceImplTest {
     private static final long COMMENT_LIST_SIZE_BY_1_BOOK = 1;
 
     @Autowired
     private CommentServiceImpl commentService;
 
+    @Autowired
+    private BookRepository bookRepository;
+
+    @Autowired
+    private CommentRepository commentRepository;
+
     @Test
     void findAllByBookId() {
-        List<Comment> actualComments = commentService.findAllByBookId(1L);
+        Book expectedBook = bookRepository.findAll().get(0);
+
+        List<Comment> actualComments = commentService.findAllByBookId(expectedBook.getId());
 
         assertEquals(COMMENT_LIST_SIZE_BY_1_BOOK, actualComments.size());
-        assertEquals(1L, actualComments.get(0).getBook().getId());
+        assertEquals(expectedBook, actualComments.get(0).getBook());
     }
 
     @Test
-    void insert() {
+    void create() {
         String expectedText = "someText";
-        long expectedBookId = 1L;
+        Book expectedBook = bookRepository.findAll().get(0);
 
-        Comment actual = commentService.insert(expectedText, expectedBookId);
-        List<Comment> allByBookId = commentService.findAllByBookId(expectedBookId);
+        Comment actual = commentService.create(expectedText, expectedBook.getId());
+        List<Comment> allByBookId = commentService.findAllByBookId(expectedBook.getId());
 
         assertEquals(expectedText, actual.getText());
-        assertEquals(expectedBookId, actual.getBook().getId());
+        assertEquals(expectedBook, actual.getBook());
         assertTrue(allByBookId.stream()
-                .anyMatch(c -> c.getBook().getId() == expectedBookId &&
+                .anyMatch(c -> c.getBook().equals(expectedBook) &&
                         c.getText().equals(expectedText)));
     }
 
     @Test
-    void insertNegative() {
+    void createNegative() {
         assertThrows(
                 EntityNotFoundException.class,
-                () -> commentService.insert("someText", Long.MIN_VALUE)
+                () -> commentService.create("someText", "unexpectedBookId")
         );
     }
 
     @Test
     void update() {
         String expectedText = "someText";
-        long expectedId = 3L;
+        Comment comment = commentRepository.findAll().get(0);
+        log.info("update() before. " + comment.toString());
 
-        Comment actual = commentService.update(expectedText, expectedId);
+        Comment actual = commentService.update(expectedText, comment.getId());
+        log.info("update() after. " + actual.toString());
 
-        assertEquals(expectedId, actual.getId());
-        assertEquals(expectedText, actual.getText());
+        assertNotEquals(comment.getText(), actual.getText());
+        Assertions.assertThat(actual)
+                .usingRecursiveComparison()
+                .ignoringFields("text")
+                .isEqualTo(comment);
     }
 
     @Test
     void updateNegative() {
         assertThrows(
                 EntityNotFoundException.class,
-                () -> commentService.update("someText", Long.MIN_VALUE)
+                () -> commentService.update("someText", "unexpectedCommentId")
         );
     }
 
     @Test
     void deleteById() {
-        assertFalse(commentService.findAllByBookId(3L).isEmpty());
+        String commentId = commentRepository.findAll().get(0).getId();
 
-        commentService.deleteById(3L);
+        commentService.deleteById(commentId);
 
-        assertTrue(commentService.findAllByBookId(3L).isEmpty());
+        assertTrue(commentRepository.findById(commentId).isEmpty());
     }
 }

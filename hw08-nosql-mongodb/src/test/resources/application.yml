@@ -5,11 +5,12 @@ spring:
       database: test
       host: localhost
 
-#de:
-#  flapdoodle:
-#    mongodb:
-#      embedded:
-#        version: 4.0.2
+# нужно для работы встроенной бд
+de:
+  flapdoodle:
+    mongodb:
+      embedded:
+        version: 4.0.2
 
 mongock:
   runner-type: "ApplicationRunner" # default

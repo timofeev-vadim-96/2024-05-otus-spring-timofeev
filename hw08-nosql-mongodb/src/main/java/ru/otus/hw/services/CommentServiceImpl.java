@@ -26,7 +26,7 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional
-    public Comment insert(String text, String bookId) {
+    public Comment create(String text, String bookId) {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new EntityNotFoundException("Book with id = %s not found".formatted(bookId)));
 
