@@ -1,5 +1,6 @@
 package ru.otus.hw.repositories;
 
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -14,6 +15,7 @@ import ru.otus.hw.models.Comment;
 import java.util.List;
 import java.util.Optional;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -22,7 +24,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Репозиторий на основе JPA для работы с комментариями")
 @DataJpaTest
-@Import({JpaBookRepository.class, JpaCommentRepository.class})
+@Import({JpaCommentRepository.class})
+@Slf4j
 class JpaCommentRepositoryTest {
     @Autowired
     private JpaCommentRepository commentRepository;
@@ -51,37 +54,42 @@ class JpaCommentRepositoryTest {
 
     @Test
     void findByIdNegative() {
-        Comment comment = em.find(Comment.class, Long.MAX_VALUE);
+        Optional<Comment> actual = commentRepository.findById(Long.MAX_VALUE);
 
-        assertNull(comment);
+        assertTrue(actual.isEmpty());
     }
 
     @Test
     void saveWhenInsert() {
         Book book = em.find(Book.class, 1L);
-        Comment comment = new Comment(null, "some text", book);
+        Comment expected = new Comment(null, "some text", book);
 
-        Comment actual = commentRepository.save(comment);
+        Comment actual = commentRepository.save(expected);
 
-        assertEquals(comment.getText(), actual.getText());
-        assertEquals(comment.getBook().getId(), actual.getBook().getId());
+        assertThat(actual)
+                .usingRecursiveComparison()
+                .ignoringFields("id")
+                .isEqualTo(expected);
     }
 
     @Test
     void saveWhenUpdate() {
-        Book book = em.find(Book.class, 1L);
-        Comment comment = new Comment(1L, "some text", book);
+        Comment expected = em.find(Comment.class, 1L);
+        expected.setText("updated text");
 
-        Comment actual = commentRepository.save(comment);
+        Comment actual = commentRepository.save(expected);
 
-        assertEquals(comment.getText(), actual.getText());
-        assertEquals(comment.getBook().getId(), actual.getBook().getId());
+        assertThat(actual)
+                .usingRecursiveComparison()
+                .isEqualTo(expected);
     }
 
     @Test
     void deleteById() {
         assertNotNull(em.find(Comment.class, 3L));
+
         commentRepository.deleteById(3L);
+
         assertNull(em.find(Comment.class, 3L));
     }
 }

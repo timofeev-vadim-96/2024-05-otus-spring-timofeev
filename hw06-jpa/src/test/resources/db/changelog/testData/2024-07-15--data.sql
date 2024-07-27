@@ -18,6 +18,6 @@ values (1, 1),   (1, 2),
        (3, 5),   (3, 6);
 
 insert into comments (text, book_id)
-values ('comment for 1st book', 1),
-       ('comment for 2st book', 2),
-       ('comment for 3st book', 3);
+values ('Comment_1', 1),
+       ('Comment_2', 2),
+       ('Comment_3', 3);

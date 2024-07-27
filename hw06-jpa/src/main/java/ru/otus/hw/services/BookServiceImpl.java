@@ -40,44 +40,43 @@ public class BookServiceImpl implements BookService {
     @Override
     @Transactional
     public Book create(String title, long authorId, Set<Long> genresIds) {
-        if (isEmpty(genresIds)) {
-            throw new IllegalArgumentException("Genres ids must not be null");
-        }
-
-        var author = authorRepository.findById(authorId)
-                .orElseThrow(() -> new EntityNotFoundException("Author with id %d not found".formatted(authorId)));
-        var genres = getGenres(genresIds);
-
-        Book book = new Book(null, title, author, genres);
-
-        return bookRepository.save(book);
+        return save(null, title, authorId, genresIds);
     }
 
     @Override
     @Transactional
     public Book update(long id, String title, long authorId, Set<Long> genresIds) {
-        if (isEmpty(genresIds)) {
-            throw new IllegalArgumentException("Genres ids must not be null");
-        }
-
-        var author = authorRepository.findById(authorId)
-                .orElseThrow(() -> new EntityNotFoundException("Author with id %d not found".formatted(authorId)));
-        var genres = getGenres(genresIds);
-
-        Book book = bookRepository
-                .findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Book with id = %d not found".formatted(id)));
-        book.setTitle(title);
-        book.setAuthor(author);
-        book.setGenres(genres);
-
-        return bookRepository.save(book);
+        return save(id, title, authorId, genresIds);
     }
 
     @Override
     @Transactional
     public void deleteById(long id) {
         bookRepository.deleteById(id);
+    }
+
+    private Book save(Long id, String title, long authorId, Set<Long> genresIds) {
+        if (isEmpty(genresIds)) {
+            throw new IllegalArgumentException("Genres ids must not be null");
+        }
+
+        var author = authorRepository.findById(authorId)
+                .orElseThrow(() -> new EntityNotFoundException("Author with id %d not found".formatted(authorId)));
+        var genres = getGenres(genresIds);
+
+        Book book;
+        if (id != null) {
+            book = bookRepository
+                    .findById(id)
+                    .orElseThrow(() -> new EntityNotFoundException("Book with id = %d not found".formatted(id)));
+            book.setTitle(title);
+            book.setAuthor(author);
+            book.setGenres(genres);
+        } else {
+            book = new Book(null, title, author, genres);
+        }
+
+        return bookRepository.save(book);
     }
 
     private List<Genre> getGenres(Set<Long> genresIds) {

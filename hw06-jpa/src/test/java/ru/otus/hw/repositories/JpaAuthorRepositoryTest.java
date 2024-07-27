@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DataJpaTest
 @Import(value = {JpaAuthorRepository.class})
 class JpaAuthorRepositoryTest {
-    private static final long AUTHORS_LIST_MAX_SIZE = 3;
+    private static final long AUTHORS_LIST_SIZE = 3;
 
     @Autowired
     private JpaAuthorRepository authorRepository;
@@ -31,12 +31,13 @@ class JpaAuthorRepositoryTest {
 
     @Test
     void findAll() {
+        Author expectedToContain = em.find(Author.class, 1L);
+
         List<Author> authors = authorRepository.findAll();
-        Author author = authorRepository.findById(1L).get();
 
         assertFalse(authors.isEmpty());
-        assertEquals(AUTHORS_LIST_MAX_SIZE, authors.size());
-        assertTrue(authors.contains(author));
+        assertEquals(AUTHORS_LIST_SIZE, authors.size());
+        assertTrue(authors.contains(expectedToContain));
     }
 
     @ParameterizedTest
@@ -52,8 +53,8 @@ class JpaAuthorRepositoryTest {
 
     @Test
     void findByIdNegative() {
-        Optional<Author> author = authorRepository.findById(Long.MAX_VALUE);
+        Optional<Author> notExpected = authorRepository.findById(Long.MAX_VALUE);
 
-        assertTrue(author.isEmpty());
+        assertTrue(notExpected.isEmpty());
     }
 }

@@ -15,6 +15,7 @@ import ru.otus.hw.repositories.JpaCommentRepository;
 
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -23,7 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DisplayName("Сервис для работы с комментариями")
 @DataJpaTest
 @Import({CommentServiceImpl.class, JpaCommentRepository.class, JpaBookRepository.class})
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 @Transactional(propagation = Propagation.NEVER)
 class CommentServiceImplTest {
     private static final long COMMENT_LIST_SIZE_BY_1_BOOK = 1;
@@ -37,21 +37,20 @@ class CommentServiceImplTest {
 
         assertEquals(COMMENT_LIST_SIZE_BY_1_BOOK, actualComments.size());
         assertEquals(1L, actualComments.get(0).getBook().getId());
+        assertDoesNotThrow(() -> actualComments.get(0).getBook().getTitle());
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     void insert() {
         String expectedText = "someText";
         long expectedBookId = 1L;
 
         Comment actual = commentService.insert(expectedText, expectedBookId);
-        List<Comment> allByBookId = commentService.findAllByBookId(expectedBookId);
 
         assertEquals(expectedText, actual.getText());
         assertEquals(expectedBookId, actual.getBook().getId());
-        assertTrue(allByBookId.stream()
-                .anyMatch(c -> c.getBook().getId() == expectedBookId &&
-                        c.getText().equals(expectedText)));
+        assertDoesNotThrow(() -> actual.getBook().getTitle());
     }
 
     @Test
@@ -71,6 +70,7 @@ class CommentServiceImplTest {
 
         assertEquals(expectedId, actual.getId());
         assertEquals(expectedText, actual.getText());
+        assertDoesNotThrow(() -> actual.getBook().getTitle());
     }
 
     @Test

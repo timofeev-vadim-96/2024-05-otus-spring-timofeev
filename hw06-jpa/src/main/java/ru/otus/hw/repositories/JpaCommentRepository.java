@@ -1,15 +1,19 @@
 package ru.otus.hw.repositories;
 
+import jakarta.persistence.EntityGraph;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.Hibernate;
 import org.springframework.stereotype.Repository;
 import ru.otus.hw.models.Comment;
 
 import java.util.List;
 import java.util.Optional;
+
+import static org.springframework.data.jpa.repository.EntityGraph.EntityGraphType.FETCH;
 
 @Repository
 @RequiredArgsConstructor
@@ -20,18 +24,24 @@ public class JpaCommentRepository implements CommentRepository {
 
     @Override
     public List<Comment> findAllByBookId(long bookId) {
-        String sql = "SELECT c FROM Comment c where c.book.id = :id";
-        TypedQuery<Comment> query = em.createQuery(sql, Comment.class);
+        String psql = "SELECT c FROM Comment c where c.book.id = :id";
+        EntityGraph<?> entityGraph = em.getEntityGraph("book-entity-graph");
+        TypedQuery<Comment> query = em.createQuery(psql, Comment.class);
         query.setParameter("id", bookId);
+        query.setHint(FETCH.getKey(), entityGraph);
 
         return query.getResultList();
     }
 
     @Override
     public Optional<Comment> findById(long id) {
-        Comment comment = em.find(Comment.class, id);
+        String psql = "SELECT c FROM Comment c where c.id = :id";
+        EntityGraph<?> entityGraph = em.getEntityGraph("book-entity-graph");
+        TypedQuery<Comment> query = em.createQuery(psql, Comment.class);
+        query.setParameter("id", id);
+        query.setHint(FETCH.getKey(), entityGraph);
 
-        return Optional.ofNullable(comment);
+        return query.getResultList().isEmpty() ? Optional.empty() : Optional.of(query.getResultList().get(0));
     }
 
     @Override
@@ -40,13 +50,17 @@ public class JpaCommentRepository implements CommentRepository {
             em.persist(comment);
             return comment;
         }
-        return em.merge(comment);
+        Comment merged = em.merge(comment);
+        Hibernate.initialize(merged.getBook());
+        return merged;
     }
 
     @Override
     public void deleteById(long id) {
         Comment comment = em.find(Comment.class, id);
 
-        em.remove(comment);
+        if (comment != null) {
+            em.remove(comment);
+        }
     }
 }

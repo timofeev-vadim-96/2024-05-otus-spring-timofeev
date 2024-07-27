@@ -1,6 +1,8 @@
 package ru.otus.hw.models;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.NamedAttributeNode;
+import jakarta.persistence.NamedEntityGraph;
 import jakarta.persistence.Table;
 import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
@@ -23,6 +25,9 @@ import lombok.ToString;
 @EqualsAndHashCode(of = {"id"})
 @ToString(of = {"id", "text"})
 @Table(name = "comments")
+@NamedEntityGraph(
+        name = "book-entity-graph",
+        attributeNodes = {@NamedAttributeNode("book")})
 public class Comment {
 
     @Id

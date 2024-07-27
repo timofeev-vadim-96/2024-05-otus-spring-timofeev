@@ -14,9 +14,8 @@ import ru.otus.hw.models.Genre;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -25,15 +24,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Репозиторий на основе JPA для работы с книгами")
 @DataJpaTest
-@Import({JpaBookRepository.class, JpaGenreRepository.class, JpaAuthorRepository.class})
+@Import({JpaBookRepository.class})
 class JpaBookRepositoryTest {
-    private static final int BOOK_LIST_MIN_SIZE = 2;
+    private static final int BOOK_LIST_SIZE = 3;
 
     @Autowired
     private JpaBookRepository bookRepository;
-
-    @Autowired
-    private JpaGenreRepository genreRepository;
 
     @Autowired
     private TestEntityManager em;
@@ -43,12 +39,13 @@ class JpaBookRepositoryTest {
     @ValueSource(longs = {1, 2})
     void shouldReturnCorrectBookById(long bookId) {
         Book expected = em.find(Book.class, bookId);
+
         Optional<Book> actual = bookRepository.findById(bookId);
 
         assertTrue(actual.isPresent());
-        assertEquals(expected, actual.get());
-        assertDoesNotThrow(() -> actual.get().getAuthor().getFullName());
-        assertDoesNotThrow(() -> actual.get().getGenres().get(0));
+        assertThat(actual.get())
+                .usingRecursiveComparison()
+                .isEqualTo(expected);
     }
 
     @DisplayName("должен возвращать Optional.empty() при поиске по несущест. id")
@@ -62,54 +59,56 @@ class JpaBookRepositoryTest {
     @DisplayName("должен загружать список всех книг")
     @Test
     void shouldReturnCorrectBooksList() {
-        List<Book> actualBooks = bookRepository.findAll();
         Book expectedFirstBook = em.find(Book.class, 1L);
 
+        List<Book> actualBooks = bookRepository.findAll();
+
         assertFalse(actualBooks.isEmpty());
-        assertTrue(
-                actualBooks.size() >= BOOK_LIST_MIN_SIZE);
+        assertEquals(BOOK_LIST_SIZE, actualBooks.size());
         assertTrue(actualBooks.contains(expectedFirstBook));
-        assertDoesNotThrow(() -> actualBooks.get(0).getAuthor().getFullName());
-        assertDoesNotThrow(() -> actualBooks.get(0).getGenres().get(0));
     }
 
     @DisplayName("должен сохранять новую книгу")
     @Test
     void shouldSaveNewBook() {
         Author author = em.find(Author.class, 1L);
-        Genre genre = genreRepository.findAllByIds(Set.of(1L)).get(0);
-        Book expectedBook = new Book(0L, "BookTitle" + Integer.MAX_VALUE, author,
+        Genre genre = em.find(Genre.class, 1L);
+        Book expected = new Book(null, "BookTitle_" + Integer.MAX_VALUE, author,
                 List.of(genre));
-        Book actualBook = bookRepository.save(expectedBook);
 
-        assertEquals(expectedBook.getTitle(), actualBook.getTitle());
-        assertEquals(author, actualBook.getAuthor());
-        assertTrue(actualBook.getGenres().contains(genre));
+        Book actual = bookRepository.save(expected);
+
+        assertThat(actual).usingRecursiveComparison()
+                .ignoringFields("id")
+                .isEqualTo(expected);
     }
 
     @DisplayName("должен сохранять измененную книгу")
     @Test
     void shouldUpdateBook() {
-        final String UPDATED_TITLE = "updated title";
+        String updatedTitle = "updated title";
         Book oldConditionBook = em.find(Book.class, 1L);
         Book book = new Book(
                 oldConditionBook.getId(),
-                UPDATED_TITLE,
+                updatedTitle,
                 oldConditionBook.getAuthor(),
                 oldConditionBook.getGenres());
 
         Book updatedBook = bookRepository.save(book);
         Book actualBook = em.find(Book.class, 1L);
 
-        assertEquals(updatedBook, actualBook);
-        assertEquals(UPDATED_TITLE, actualBook.getTitle());
+        assertThat(updatedBook).usingRecursiveComparison()
+                .isEqualTo(actualBook);
+        assertEquals(updatedTitle, actualBook.getTitle());
     }
 
     @DisplayName("должен удалять книгу по id ")
     @Test
     void shouldDeleteBook() {
         assertNotNull(em.find(Book.class, 3L));
+
         bookRepository.deleteById(3L);
+
         assertNull(em.find(Book.class, 3L));
     }
 }
