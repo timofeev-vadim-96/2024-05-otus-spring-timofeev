@@ -46,7 +46,12 @@ public class BookServiceImpl implements BookService {
     @Override
     @Transactional
     public Book update(long id, String title, long authorId, Set<Long> genresIds) {
-        return save(id, title, authorId, genresIds);
+        Book updated = save(id, title, authorId, genresIds);
+        //pull lazy entities
+        updated.getAuthor();
+        updated.getGenres();
+
+        return updated;
     }
 
     @Override

@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Репозиторий на основе JPA для работы с книгами")
 @DataJpaTest
-@Import({JpaBookRepository.class})
+@Import({JpaBookRepository.class, JpaGenreRepository.class})
 class JpaBookRepositoryTest {
     private static final int BOOK_LIST_SIZE = 3;
 

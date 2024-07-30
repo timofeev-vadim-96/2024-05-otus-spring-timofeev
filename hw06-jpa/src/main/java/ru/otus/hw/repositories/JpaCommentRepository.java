@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.Hibernate;
 import org.springframework.stereotype.Repository;
+import ru.otus.hw.models.Book;
 import ru.otus.hw.models.Comment;
 
 import java.util.List;
@@ -24,20 +25,19 @@ public class JpaCommentRepository implements CommentRepository {
 
     @Override
     public List<Comment> findAllByBookId(long bookId) {
-        String psql = "SELECT c FROM Comment c where c.book.id = :id";
-        EntityGraph<?> entityGraph = em.getEntityGraph("book-entity-graph");
-        TypedQuery<Comment> query = em.createQuery(psql, Comment.class);
-        query.setParameter("id", bookId);
-        query.setHint(FETCH.getKey(), entityGraph);
+        Book book = em.find(Book.class, bookId);
+        String jpql = "SELECT c FROM Comment c where c.book = :book";
+        TypedQuery<Comment> query = em.createQuery(jpql, Comment.class);
+        query.setParameter("book", book);
 
         return query.getResultList();
     }
 
     @Override
     public Optional<Comment> findById(long id) {
-        String psql = "SELECT c FROM Comment c where c.id = :id";
+        String jpql = "SELECT c FROM Comment c where c.id = :id";
         EntityGraph<?> entityGraph = em.getEntityGraph("book-entity-graph");
-        TypedQuery<Comment> query = em.createQuery(psql, Comment.class);
+        TypedQuery<Comment> query = em.createQuery(jpql, Comment.class);
         query.setParameter("id", id);
         query.setHint(FETCH.getKey(), entityGraph);
 

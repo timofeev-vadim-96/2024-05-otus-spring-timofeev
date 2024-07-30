@@ -12,6 +12,7 @@ import ru.otus.hw.exceptions.EntityNotFoundException;
 import ru.otus.hw.models.Comment;
 import ru.otus.hw.repositories.JpaBookRepository;
 import ru.otus.hw.repositories.JpaCommentRepository;
+import ru.otus.hw.repositories.JpaGenreRepository;
 
 import java.util.List;
 
@@ -23,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Сервис для работы с комментариями")
 @DataJpaTest
-@Import({CommentServiceImpl.class, JpaCommentRepository.class, JpaBookRepository.class})
+@Import({CommentServiceImpl.class, JpaCommentRepository.class, JpaBookRepository.class, JpaGenreRepository.class})
 @Transactional(propagation = Propagation.NEVER)
 class CommentServiceImplTest {
     private static final long COMMENT_LIST_SIZE_BY_1_BOOK = 1;

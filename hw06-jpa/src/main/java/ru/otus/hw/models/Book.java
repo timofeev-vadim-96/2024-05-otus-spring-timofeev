@@ -54,6 +54,6 @@ public class Book {
             joinColumns = @JoinColumn(name = "book_id"),
             inverseJoinColumns = @JoinColumn(name = "genre_id")
     )
-    @Fetch(value = FetchMode.SELECT)
+    @Fetch(value = FetchMode.SUBSELECT)
     private List<Genre> genres;
 }

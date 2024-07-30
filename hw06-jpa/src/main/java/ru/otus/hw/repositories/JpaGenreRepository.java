@@ -18,9 +18,9 @@ public class JpaGenreRepository implements GenreRepository {
 
     @Override
     public List<Genre> findAll() {
-        String psql = "select g from Genre g";
+        String jpql = "select g from Genre g";
 
-        TypedQuery<Genre> query = em.createQuery(psql, Genre.class);
+        TypedQuery<Genre> query = em.createQuery(jpql, Genre.class);
 
         return query.getResultList();
     }
@@ -31,9 +31,9 @@ public class JpaGenreRepository implements GenreRepository {
             return List.of();
         }
 
-        String psql = "SELECT g from Genre g WHERE id IN :ids";
+        String jpql = "SELECT g from Genre g WHERE id IN :ids";
 
-        TypedQuery<Genre> query = em.createQuery(psql, Genre.class);
+        TypedQuery<Genre> query = em.createQuery(jpql, Genre.class);
         query.setParameter("ids", ids);
 
         return query.getResultList();
