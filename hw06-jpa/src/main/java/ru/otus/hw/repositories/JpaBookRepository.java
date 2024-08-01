@@ -26,8 +26,6 @@ public class JpaBookRepository implements BookRepository {
     @PersistenceContext
     private final EntityManager em;
 
-    private final GenreRepository genreRepository;
-
     @Override
     public Optional<Book> findById(long id) {
         String jpql = "select b from Book b left join fetch b.genres where b.id = :id";
@@ -41,11 +39,12 @@ public class JpaBookRepository implements BookRepository {
 
     @Override
     public List<Book> findAll() {
-        var genres = genreRepository.findAll();
-        var relations = getAllGenreRelations();
-        var books = getAllBooksWithoutGenres();
-        mergeBooksInfo(books, genres, relations);
-        return books;
+        String jpql = "select b from Book b";
+        EntityGraph<?> entityGraph = em.getEntityGraph("author-entity-graph");
+        TypedQuery<Book> query = em.createQuery(jpql, Book.class);
+        query.setHint(FETCH.getKey(), entityGraph);
+
+        return query.getResultList();
     }
 
     @Override
@@ -65,42 +64,5 @@ public class JpaBookRepository implements BookRepository {
         if (book != null) {
             em.remove(book);
         }
-    }
-
-    private List<BookGenreRelation> getAllGenreRelations() {
-        String sql = "select book_id, genre_id from books_genres";
-
-        Query query = em.createNativeQuery(sql, BookGenreRelation.class);
-
-        return query.getResultList();
-    }
-
-    private void mergeBooksInfo(List<Book> booksWithoutGenres, List<Genre> genres,
-                                List<BookGenreRelation> relations) {
-        Map<Long, Genre> genresMap = genres.stream()
-                .collect(Collectors
-                        .toMap(Genre::getId, Function.identity()));
-
-        Map<Long, Book> booksMap = booksWithoutGenres.stream()
-                .collect(Collectors
-                        .toMap(Book::getId, Function.identity()));
-
-        for (BookGenreRelation relation : relations) {
-            Book book = booksMap.get(relation.bookId);
-            Genre genre = genresMap.get(relation.genreId);
-            book.getGenres().add(genre);
-        }
-    }
-
-    private List<Book> getAllBooksWithoutGenres() {
-        String jpql = "select b from Book b order by b.id asc";
-        EntityGraph<?> authorGraph = em.getEntityGraph("author-entity-graph");
-        TypedQuery<Book> query = em.createQuery(jpql, Book.class);
-        query.setHint(FETCH.getKey(), authorGraph);
-
-        return query.getResultList();
-    }
-
-    private record BookGenreRelation(long bookId, long genreId) {
     }
 }

@@ -9,6 +9,7 @@ import ru.otus.hw.models.Genre;
 import ru.otus.hw.repositories.AuthorRepository;
 import ru.otus.hw.repositories.BookRepository;
 import ru.otus.hw.repositories.GenreRepository;
+import ru.otus.hw.services.dto.BookDto;
 
 import java.util.List;
 import java.util.Optional;
@@ -33,8 +34,10 @@ public class BookServiceImpl implements BookService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Book> findAll() {
-        return bookRepository.findAll();
+    public List<BookDto> findAll() {
+        List<Book> books = bookRepository.findAll();
+
+        return books.stream().map(BookDto::new).toList();
     }
 
     @Override
@@ -45,13 +48,10 @@ public class BookServiceImpl implements BookService {
 
     @Override
     @Transactional
-    public Book update(long id, String title, long authorId, Set<Long> genresIds) {
+    public BookDto update(long id, String title, long authorId, Set<Long> genresIds) {
         Book updated = save(id, title, authorId, genresIds);
-        //pull lazy entities
-        updated.getAuthor();
-        updated.getGenres();
 
-        return updated;
+        return new BookDto(updated);
     }
 
     @Override

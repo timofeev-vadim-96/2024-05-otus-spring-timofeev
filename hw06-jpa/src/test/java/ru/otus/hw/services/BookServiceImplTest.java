@@ -18,6 +18,7 @@ import ru.otus.hw.models.Genre;
 import ru.otus.hw.repositories.JpaAuthorRepository;
 import ru.otus.hw.repositories.JpaBookRepository;
 import ru.otus.hw.repositories.JpaGenreRepository;
+import ru.otus.hw.services.dto.BookDto;
 
 import java.util.List;
 import java.util.Optional;
@@ -60,11 +61,11 @@ class BookServiceImplTest {
 
     @Test
     void findAll() {
-        List<Book> actualBooks = bookService.findAll();
+        List<BookDto> actualBooks = bookService.findAll();
 
         assertFalse(actualBooks.isEmpty());
         assertEquals(BOOK_LIST_SIZE, actualBooks.size());
-        assertThat(actualBooks).containsExactlyInAnyOrderElementsOf(dbBooks);
+        assertThat(actualBooks).containsExactlyInAnyOrderElementsOf(dbBooks.stream().map(BookDto::new).toList());
     }
 
     @Test
@@ -120,12 +121,11 @@ class BookServiceImplTest {
         String expectedTitle = "titleToUpdate";
         Set<Long> expectedGenresIds = Set.of(1L, 3L, 6L);
 
-        Book actual = bookService.update(
+        BookDto actual = bookService.update(
                 1L,
                 expectedTitle,
                 expectedAuthorId,
                 expectedGenresIds);
-
 
         assertEquals(expectedGenresIds, actual.getGenres()
                 .stream()
