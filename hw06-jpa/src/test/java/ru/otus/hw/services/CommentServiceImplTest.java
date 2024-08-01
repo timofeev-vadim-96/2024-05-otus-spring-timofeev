@@ -9,10 +9,10 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.otus.hw.exceptions.EntityNotFoundException;
-import ru.otus.hw.models.Comment;
 import ru.otus.hw.repositories.JpaBookRepository;
 import ru.otus.hw.repositories.JpaCommentRepository;
 import ru.otus.hw.repositories.JpaGenreRepository;
+import ru.otus.hw.services.dto.CommentDto;
 
 import java.util.List;
 
@@ -34,7 +34,7 @@ class CommentServiceImplTest {
 
     @Test
     void findAllByBookId() {
-        List<Comment> actualComments = commentService.findAllByBookId(1L);
+        List<CommentDto> actualComments = commentService.findAllByBookId(1L);
 
         assertEquals(COMMENT_LIST_SIZE_BY_1_BOOK, actualComments.size());
         assertEquals(1L, actualComments.get(0).getBook().getId());
@@ -47,7 +47,7 @@ class CommentServiceImplTest {
         String expectedText = "someText";
         long expectedBookId = 1L;
 
-        Comment actual = commentService.insert(expectedText, expectedBookId);
+        CommentDto actual = commentService.create(expectedText, expectedBookId);
 
         assertEquals(expectedText, actual.getText());
         assertEquals(expectedBookId, actual.getBook().getId());
@@ -58,7 +58,7 @@ class CommentServiceImplTest {
     void insertNegative() {
         assertThrows(
                 EntityNotFoundException.class,
-                () -> commentService.insert("someText", Long.MIN_VALUE)
+                () -> commentService.create("someText", Long.MIN_VALUE)
         );
     }
 
@@ -67,7 +67,7 @@ class CommentServiceImplTest {
         String expectedText = "someText";
         long expectedId = 3L;
 
-        Comment actual = commentService.update(expectedText, expectedId);
+        CommentDto actual = commentService.update(expectedText, expectedId);
 
         assertEquals(expectedId, actual.getId());
         assertEquals(expectedText, actual.getText());

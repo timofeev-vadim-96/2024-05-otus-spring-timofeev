@@ -28,8 +28,10 @@ public class BookServiceImpl implements BookService {
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<Book> findById(long id) {
-        return bookRepository.findById(id);
+    public Optional<BookDto> findById(long id) {
+        Optional<Book> book = bookRepository.findById(id);
+
+        return book.map(BookDto::new);
     }
 
     @Override
@@ -42,8 +44,10 @@ public class BookServiceImpl implements BookService {
 
     @Override
     @Transactional
-    public Book create(String title, long authorId, Set<Long> genresIds) {
-        return save(null, title, authorId, genresIds);
+    public BookDto create(String title, long authorId, Set<Long> genresIds) {
+        Book created = save(null, title, authorId, genresIds);
+
+        return new BookDto(created);
     }
 
     @Override

@@ -12,13 +12,12 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.otus.hw.exceptions.EntityNotFoundException;
-import ru.otus.hw.models.Author;
-import ru.otus.hw.models.Book;
-import ru.otus.hw.models.Genre;
 import ru.otus.hw.repositories.JpaAuthorRepository;
 import ru.otus.hw.repositories.JpaBookRepository;
 import ru.otus.hw.repositories.JpaGenreRepository;
+import ru.otus.hw.services.dto.AuthorDto;
 import ru.otus.hw.services.dto.BookDto;
+import ru.otus.hw.services.dto.GenreDto;
 
 import java.util.List;
 import java.util.Optional;
@@ -42,7 +41,7 @@ class BookServiceImplTest {
     @Autowired
     private BookServiceImpl bookService;
 
-    private List<Book> dbBooks;
+    private List<BookDto> dbBooks;
 
     @BeforeEach
     void setUp() {
@@ -51,8 +50,8 @@ class BookServiceImplTest {
 
     @ParameterizedTest
     @MethodSource("getDbBooks")
-    void findById(Book book) {
-        Optional<Book> actual = bookService.findById(book.getId());
+    void findById(BookDto book) {
+        Optional<BookDto> actual = bookService.findById(book.getId());
 
         assertTrue(actual.isPresent());
         assertThat(actual.get()).usingRecursiveComparison()
@@ -65,7 +64,7 @@ class BookServiceImplTest {
 
         assertFalse(actualBooks.isEmpty());
         assertEquals(BOOK_LIST_SIZE, actualBooks.size());
-        assertThat(actualBooks).containsExactlyInAnyOrderElementsOf(dbBooks.stream().map(BookDto::new).toList());
+        assertThat(actualBooks).containsExactlyInAnyOrderElementsOf(dbBooks);
     }
 
     @Test
@@ -75,12 +74,12 @@ class BookServiceImplTest {
         String expectedTitle = "titleToInsert";
         Set<Long> expectedGenresIds = Set.of(1L, 2L, 5L);
 
-        Book actual = bookService.create(expectedTitle, expectedAuthorId, expectedGenresIds);
+        BookDto actual = bookService.create(expectedTitle, expectedAuthorId, expectedGenresIds);
 
         assertEquals(expectedTitle, actual.getTitle());
         assertEquals(expectedGenresIds, actual.getGenres()
                 .stream()
-                .map(Genre::getId)
+                .map(GenreDto::getId)
                 .collect(Collectors.toSet()));
         assertEquals(expectedAuthorId, actual.getAuthor().getId());
     }
@@ -129,7 +128,7 @@ class BookServiceImplTest {
 
         assertEquals(expectedGenresIds, actual.getGenres()
                 .stream()
-                .map(Genre::getId)
+                .map(GenreDto::getId)
                 .collect(Collectors.toSet()));
         assertEquals(expectedTitle, actual.getTitle());
         assertEquals(expectedAuthorId, actual.getAuthor().getId());
@@ -145,21 +144,21 @@ class BookServiceImplTest {
         assertTrue(bookService.findById(3L).isEmpty());
     }
 
-    private static List<Author> getDbAuthors() {
+    private static List<AuthorDto> getDbAuthors() {
         return LongStream.range(1, 4).boxed()
-                .map(id -> new Author(id, "Author_" + id))
+                .map(id -> new AuthorDto(id, "Author_" + id))
                 .toList();
     }
 
-    private static List<Genre> getDbGenres() {
+    private static List<GenreDto> getDbGenres() {
         return LongStream.range(1, 7).boxed()
-                .map(id -> new Genre(id, "Genre_" + id))
+                .map(id -> new GenreDto(id, "Genre_" + id))
                 .toList();
     }
 
-    private static List<Book> getDbBooks(List<Author> dbAuthors, List<Genre> dbGenres) {
+    private static List<BookDto> getDbBooks(List<AuthorDto> dbAuthors, List<GenreDto> dbGenres) {
         return LongStream.range(1, 4).boxed()
-                .map(id -> new Book(id,
+                .map(id -> new BookDto(id,
                         "BookTitle_" + id,
                         dbAuthors.get((int) (id - 1)),
                         dbGenres.subList((int) ((id - 1) * 2), (int) ((id - 1) * 2 + 2))
@@ -167,7 +166,7 @@ class BookServiceImplTest {
                 .toList();
     }
 
-    private static List<Book> getDbBooks() {
+    private static List<BookDto> getDbBooks() {
         var dbAuthors = getDbAuthors();
         var dbGenres = getDbGenres();
         return getDbBooks(dbAuthors, dbGenres);
