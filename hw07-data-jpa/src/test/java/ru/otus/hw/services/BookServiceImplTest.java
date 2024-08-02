@@ -134,11 +134,11 @@ class BookServiceImplTest {
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     void deleteById() {
-        assertTrue(bookService.findById(3L).isPresent());
+        assertTrue(bookService.findById(2L).isPresent());
 
-        bookService.deleteById(3L);
+        bookService.deleteById(2L);
 
-        assertTrue(bookService.findById(3L).isEmpty());
+        assertTrue(bookService.findById(2L).isEmpty());
     }
 
     private static List<AuthorDto> getDbAuthors() {

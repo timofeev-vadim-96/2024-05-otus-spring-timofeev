@@ -21,7 +21,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DisplayName("Сервис для работы с комментариями")
 @DataJpaTest
 @Import({CommentServiceImpl.class})
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 @Transactional(propagation = Propagation.NEVER)
 class CommentServiceImplTest {
     private static final long COMMENT_LIST_SIZE_BY_1_BOOK = 1;
@@ -38,6 +37,7 @@ class CommentServiceImplTest {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     void insert() {
         String expectedText = "someText";
         long expectedBookId = 1L;
@@ -81,10 +81,10 @@ class CommentServiceImplTest {
 
     @Test
     void deleteById() {
-        assertFalse(commentService.findAllByBookId(3L).isEmpty());
+        assertFalse(commentService.findAllByBookId(2L).isEmpty());
 
-        commentService.deleteById(3L);
+        commentService.deleteById(2L);
 
-        assertTrue(commentService.findAllByBookId(3L).isEmpty());
+        assertTrue(commentService.findAllByBookId(2L).isEmpty());
     }
 }
