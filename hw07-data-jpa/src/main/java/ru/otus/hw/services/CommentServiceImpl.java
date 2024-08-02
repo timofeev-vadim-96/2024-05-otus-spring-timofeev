@@ -8,6 +8,7 @@ import ru.otus.hw.models.Book;
 import ru.otus.hw.models.Comment;
 import ru.otus.hw.repositories.BookRepository;
 import ru.otus.hw.repositories.CommentRepository;
+import ru.otus.hw.services.dto.CommentDto;
 
 import java.util.List;
 
@@ -20,28 +21,36 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Comment> findAllByBookId(long bookId) {
-        return commentRepository.findAllByBookId(bookId);
-    }
-
-    @Override
-    @Transactional
-    public Comment insert(String text, long bookId) {
+    public List<CommentDto> findAllByBookId(long bookId) {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new EntityNotFoundException("Book with id = %d not found".formatted(bookId)));
 
-        Comment comment = new Comment(null, text, book);
-        return commentRepository.save(comment);
+        return commentRepository.findAllByBook(book).stream().map(CommentDto::new).toList();
     }
 
     @Override
     @Transactional
-    public Comment update(String text, long id) {
-        Comment comment = commentRepository.findById(id)
+    public CommentDto create(String text, long bookId) {
+        Book book = bookRepository
+                .findById(bookId)
+                .orElseThrow(() -> new EntityNotFoundException("Book with id = %d not found".formatted(bookId)));
+
+        Comment comment = new Comment(null, text, book);
+        Comment created = commentRepository.save(comment);
+
+        return new CommentDto(created);
+    }
+
+    @Override
+    @Transactional
+    public CommentDto update(String text, long id) {
+        Comment comment = commentRepository
+                .findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Comment with id = %d not found".formatted(id)));
         comment.setText(text);
+        Comment updated = commentRepository.save(comment);
 
-        return commentRepository.save(comment);
+        return new CommentDto(updated);
     }
 
     @Override

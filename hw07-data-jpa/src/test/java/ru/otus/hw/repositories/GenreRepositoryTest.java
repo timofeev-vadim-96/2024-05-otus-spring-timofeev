@@ -9,7 +9,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.transaction.annotation.Transactional;
 import ru.otus.hw.models.Genre;
 
-import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -29,7 +28,7 @@ class GenreRepositoryTest {
     void findAllByIds() {
         Genre genre = em.find(Genre.class, 1L);
 
-        List<Genre> genresByIds = genreRepository.findAllByIds(Set.of(1L, 2L));
+        Set<Genre> genresByIds = genreRepository.findAllByIds(Set.of(1L, 2L));
 
         assertFalse(genresByIds.isEmpty());
         Assertions.assertThat(genresByIds)

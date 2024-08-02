@@ -9,8 +9,8 @@ import ru.otus.hw.models.Genre;
 import ru.otus.hw.repositories.AuthorRepository;
 import ru.otus.hw.repositories.BookRepository;
 import ru.otus.hw.repositories.GenreRepository;
+import ru.otus.hw.services.dto.BookDto;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -28,50 +28,34 @@ public class BookServiceImpl implements BookService {
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<Book> findById(long id) {
-        return bookRepository.findById(id);
+    public Optional<BookDto> findById(long id) {
+        Optional<Book> book = bookRepository.findById(id);
+
+        return book.map(BookDto::new);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<Book> findAll() {
-        return bookRepository.findAll();
+    public List<BookDto> findAll() {
+        List<Book> books = bookRepository.findAll();
+
+        return books.stream().map(BookDto::new).toList();
     }
 
     @Override
     @Transactional
-    public Book create(String title, long authorId, Set<Long> genresIds) {
-        if (isEmpty(genresIds)) {
-            throw new IllegalArgumentException("Genres ids must not be null");
-        }
+    public BookDto create(String title, long authorId, Set<Long> genresIds) {
+        Book created = save(null, title, authorId, genresIds);
 
-        var author = authorRepository.findById(authorId)
-                .orElseThrow(() -> new EntityNotFoundException("Author with id %d not found".formatted(authorId)));
-        var genres = getGenres(genresIds);
-
-        Book book = new Book(null, title, author, genres);
-
-        return bookRepository.save(book);
+        return new BookDto(created);
     }
 
     @Override
     @Transactional
-    public Book update(long id, String title, long authorId, Set<Long> genresIds) {
-        if (isEmpty(genresIds)) {
-            throw new IllegalArgumentException("Genres ids must not be null");
-        }
+    public BookDto update(long id, String title, long authorId, Set<Long> genresIds) {
+        Book updated = save(id, title, authorId, genresIds);
 
-        var author = authorRepository.findById(authorId)
-                .orElseThrow(() -> new EntityNotFoundException("Author with id %d not found".formatted(authorId)));
-        var genres = getGenres(genresIds);
-
-        Book book = bookRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Book with id = %d not found".formatted(id)));
-        book.setTitle(title);
-        book.setAuthor(author);
-        book.setGenres(genres);
-
-        return bookRepository.save(book);
+        return new BookDto(updated);
     }
 
     @Override
@@ -80,11 +64,35 @@ public class BookServiceImpl implements BookService {
         bookRepository.deleteById(id);
     }
 
+    private Book save(Long id, String title, long authorId, Set<Long> genresIds) {
+        if (isEmpty(genresIds)) {
+            throw new IllegalArgumentException("Genres ids must not be null");
+        }
+
+        var author = authorRepository.findById(authorId)
+                .orElseThrow(() -> new EntityNotFoundException("Author with id %d not found".formatted(authorId)));
+        var genres = getGenres(genresIds);
+
+        Book book;
+        if (id != null) {
+            book = bookRepository
+                    .findById(id)
+                    .orElseThrow(() -> new EntityNotFoundException("Book with id = %d not found".formatted(id)));
+            book.setTitle(title);
+            book.setAuthor(author);
+            book.setGenres(genres);
+        } else {
+            book = new Book(null, title, author, genres);
+        }
+
+        return bookRepository.save(book);
+    }
+
     private Set<Genre> getGenres(Set<Long> genresIds) {
         var genres = genreRepository.findAllByIds(genresIds);
         if (isEmpty(genres) || genresIds.size() != genres.size()) {
             throw new EntityNotFoundException("One or all genres with ids %s not found".formatted(genresIds));
         }
-        return new HashSet<>(genres);
+        return genres;
     }
 }

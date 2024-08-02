@@ -1,25 +1,28 @@
 package ru.otus.hw.services;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.otus.hw.exceptions.EntityNotFoundException;
-import ru.otus.hw.models.Book;
-import ru.otus.hw.models.Genre;
+import ru.otus.hw.services.dto.AuthorDto;
+import ru.otus.hw.services.dto.BookDto;
+import ru.otus.hw.services.dto.GenreDto;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.LongStream;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -28,62 +31,54 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DisplayName("Сервис для работы с книгами")
 @DataJpaTest
 @Import({BookServiceImpl.class})
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 @Transactional(propagation = Propagation.NEVER)
 class BookServiceImplTest {
-    private static final long BOOK_LIST_MIN_SIZE = 2;
+    private static final long BOOK_LIST_SIZE = 3;
 
     @Autowired
     private BookServiceImpl bookService;
 
-    @Autowired
-    private TestEntityManager em;
+    private List<BookDto> dbBooks;
+
+    @BeforeEach
+    void setUp() {
+        dbBooks = getDbBooks();
+    }
 
     @ParameterizedTest
-    @ValueSource(longs = {1, 2})
-    @Transactional(readOnly = true)
-    void findById(long id) {
-        Book expected = em.find(Book.class, id);
-
-        Optional<Book> actual = bookService.findById(id);
+    @MethodSource("getDbBooks")
+    void findById(BookDto book) {
+        Optional<BookDto> actual = bookService.findById(book.getId());
 
         assertTrue(actual.isPresent());
-        assertEquals(expected, actual.get());
-        assertEquals(id, actual.get().getId());
+        assertThat(actual.get()).usingRecursiveComparison()
+                .isEqualTo(book);
     }
 
     @Test
     void findAll() {
-        Optional<Book> expectedBook = bookService.findById(1L);
-
-        List<Book> actualBooks = bookService.findAll();
+        List<BookDto> actualBooks = bookService.findAll();
 
         assertFalse(actualBooks.isEmpty());
-        assertTrue(actualBooks.size() >= BOOK_LIST_MIN_SIZE);
-        assertTrue(actualBooks.contains(expectedBook.get()));
+        assertEquals(BOOK_LIST_SIZE, actualBooks.size());
+        assertThat(actualBooks).containsExactlyInAnyOrderElementsOf(dbBooks);
     }
 
     @Test
-    void insert() {
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
+    void create() {
         long expectedAuthorId = 1L;
         String expectedTitle = "titleToInsert";
         Set<Long> expectedGenresIds = Set.of(1L, 2L, 5L);
-        Book actual = bookService.create(expectedTitle, expectedAuthorId, expectedGenresIds);
 
-        List<Book> books = bookService.findAll();
-        Optional<Book> insertedBookOptional = books.stream()
-                .filter(b -> b.getAuthor().getId() == expectedAuthorId &&
-                        b.getTitle().equals(expectedTitle)).findFirst();
+        BookDto actual = bookService.create(expectedTitle, expectedAuthorId, expectedGenresIds);
 
         assertEquals(expectedTitle, actual.getTitle());
         assertEquals(expectedGenresIds, actual.getGenres()
                 .stream()
-                .map(Genre::getId)
+                .map(GenreDto::getId)
                 .collect(Collectors.toSet()));
         assertEquals(expectedAuthorId, actual.getAuthor().getId());
-        assertTrue(insertedBookOptional.isPresent());
-        assertEquals(actual.getTitle(), insertedBookOptional.get().getTitle());
-        assertEquals(actual.getAuthor().getId(), insertedBookOptional.get().getAuthor().getId());
     }
 
     @Test
@@ -116,32 +111,61 @@ class BookServiceImplTest {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     void update() {
         long expectedAuthorId = 1L;
         String expectedTitle = "titleToUpdate";
         Set<Long> expectedGenresIds = Set.of(1L, 3L, 6L);
-        Book oldConditionBook = bookService.findById(1L).get();
 
-        Book actual = bookService.update(
-                oldConditionBook.getId(),
+        BookDto actual = bookService.update(
+                1L,
                 expectedTitle,
                 expectedAuthorId,
                 expectedGenresIds);
-        Book book = bookService.findById(1L).get();
 
-        assertEquals(actual, book);
         assertEquals(expectedGenresIds, actual.getGenres()
                 .stream()
-                .map(Genre::getId)
+                .map(GenreDto::getId)
                 .collect(Collectors.toSet()));
         assertEquals(expectedTitle, actual.getTitle());
         assertEquals(expectedAuthorId, actual.getAuthor().getId());
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     void deleteById() {
         assertTrue(bookService.findById(3L).isPresent());
+
         bookService.deleteById(3L);
+
         assertTrue(bookService.findById(3L).isEmpty());
+    }
+
+    private static List<AuthorDto> getDbAuthors() {
+        return LongStream.range(1, 4).boxed()
+                .map(id -> new AuthorDto(id, "Author_" + id))
+                .toList();
+    }
+
+    private static List<GenreDto> getDbGenres() {
+        return LongStream.range(1, 7).boxed()
+                .map(id -> new GenreDto(id, "Genre_" + id))
+                .toList();
+    }
+
+    private static List<BookDto> getDbBooks(List<AuthorDto> dbAuthors, List<GenreDto> dbGenres) {
+        return LongStream.range(1, 4).boxed()
+                .map(id -> new BookDto(id,
+                        "BookTitle_" + id,
+                        dbAuthors.get((int) (id - 1)),
+                        dbGenres.subList((int) ((id - 1) * 2), (int) ((id - 1) * 2 + 2))
+                ))
+                .toList();
+    }
+
+    private static List<BookDto> getDbBooks() {
+        var dbAuthors = getDbAuthors();
+        var dbGenres = getDbGenres();
+        return getDbBooks(dbAuthors, dbGenres);
     }
 }
