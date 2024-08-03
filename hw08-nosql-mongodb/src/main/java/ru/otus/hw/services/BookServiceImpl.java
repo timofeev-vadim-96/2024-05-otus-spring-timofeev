@@ -1,7 +1,6 @@
 package ru.otus.hw.services;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.otus.hw.exceptions.EntityNotFoundException;
@@ -20,7 +19,6 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 
 @RequiredArgsConstructor
 @Service
-@Slf4j
 public class BookServiceImpl implements BookService {
     private final AuthorRepository authorRepository;
 
@@ -84,7 +82,6 @@ public class BookServiceImpl implements BookService {
 
     private Set<Genre> getGenres(Set<String> genresIds) {
         var genres = genreRepository.findAllByIds(genresIds);
-        log.info(genres.toString());
 
         if (isEmpty(genres) || genresIds.size() != genres.size()) {
             throw new EntityNotFoundException("One or all genres with ids %s not found".formatted(genresIds));

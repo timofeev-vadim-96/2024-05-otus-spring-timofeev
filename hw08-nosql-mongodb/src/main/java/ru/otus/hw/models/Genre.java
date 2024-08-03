@@ -15,7 +15,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode(of = {"id"})
-@ToString(of = {"id", "name"})
+@ToString
 public class Genre {
     @Id
     private String id;

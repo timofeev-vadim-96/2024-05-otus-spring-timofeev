@@ -26,7 +26,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DisplayName("Сервис для работы с комментариями")
 @DataMongoTest
 @Import({CommentServiceImpl.class})
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 @Transactional(propagation = Propagation.NEVER)
 @Slf4j
 class CommentServiceImplTest {
@@ -52,6 +51,7 @@ class CommentServiceImplTest {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     void create() {
         String expectedText = "someText";
         Book expectedBook = bookRepository.findAll().get(0);

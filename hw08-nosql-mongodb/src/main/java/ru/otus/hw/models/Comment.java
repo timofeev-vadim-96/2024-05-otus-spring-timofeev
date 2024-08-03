@@ -16,7 +16,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(of = {"id"})
-@ToString(of = {"id", "text"})
+@ToString
 public class Comment {
     @Id
     private String id;

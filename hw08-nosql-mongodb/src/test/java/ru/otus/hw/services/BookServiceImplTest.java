@@ -31,7 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @DisplayName("Сервис для работы с книгами")
 @DataMongoTest
 @Import({BookServiceImpl.class})
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 @Transactional(propagation = Propagation.NEVER)
 class BookServiceImplTest {
     private static final long BOOK_LIST_MIN_SIZE = 2;
@@ -76,6 +75,7 @@ class BookServiceImplTest {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     void create() {
         Author expectedAuthor = authorRepository.findAll().get(0);
         String expectedTitle = "titleToInsert";
@@ -151,6 +151,7 @@ class BookServiceImplTest {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     void update() {
         String expectedTitle = "titleToUpdate";
         Author expectedAuthor = authorRepository.findAll().get(0);
@@ -181,6 +182,7 @@ class BookServiceImplTest {
     }
 
     @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     void deleteById() {
         String bookId = bookRepository.findAll().get(0).getId();
 
