@@ -1,7 +1,6 @@
 package ru.otus.hw.services;
 
 import lombok.extern.slf4j.Slf4j;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,9 +14,12 @@ import ru.otus.hw.models.Book;
 import ru.otus.hw.models.Comment;
 import ru.otus.hw.repositories.BookRepository;
 import ru.otus.hw.repositories.CommentRepository;
+import ru.otus.hw.services.dto.BookDto;
+import ru.otus.hw.services.dto.CommentDto;
 
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -44,10 +46,12 @@ class CommentServiceImplTest {
     void findAllByBookId() {
         Book expectedBook = bookRepository.findAll().get(0);
 
-        List<Comment> actualComments = commentService.findAllByBookId(expectedBook.getId());
+        List<CommentDto> actualComments = commentService.findAllByBookId(expectedBook.getId());
 
         assertEquals(COMMENT_LIST_SIZE_BY_1_BOOK, actualComments.size());
-        assertEquals(expectedBook, actualComments.get(0).getBook());
+        assertThat(actualComments.get(0).getBook())
+                .usingRecursiveComparison()
+                .isEqualTo(expectedBook);
     }
 
     @Test
@@ -56,13 +60,15 @@ class CommentServiceImplTest {
         String expectedText = "someText";
         Book expectedBook = bookRepository.findAll().get(0);
 
-        Comment actual = commentService.create(expectedText, expectedBook.getId());
-        List<Comment> allByBookId = commentService.findAllByBookId(expectedBook.getId());
+        CommentDto actual = commentService.create(expectedText, expectedBook.getId());
+        List<CommentDto> allByBookId = commentService.findAllByBookId(expectedBook.getId());
 
         assertEquals(expectedText, actual.getText());
-        assertEquals(expectedBook, actual.getBook());
+        assertThat(actual.getBook())
+                .usingRecursiveComparison()
+                .isEqualTo(expectedBook);
         assertTrue(allByBookId.stream()
-                .anyMatch(c -> c.getBook().equals(expectedBook) &&
+                .anyMatch(c -> c.getBook().equals(new BookDto(expectedBook)) &&
                         c.getText().equals(expectedText)));
     }
 
@@ -78,13 +84,11 @@ class CommentServiceImplTest {
     void update() {
         String expectedText = "someText";
         Comment comment = commentRepository.findAll().get(0);
-        log.info("update() before. " + comment.toString());
 
-        Comment actual = commentService.update(expectedText, comment.getId());
-        log.info("update() after. " + actual.toString());
+        CommentDto actual = commentService.update(expectedText, comment.getId());
 
         assertNotEquals(comment.getText(), actual.getText());
-        Assertions.assertThat(actual)
+        assertThat(actual)
                 .usingRecursiveComparison()
                 .ignoringFields("text")
                 .isEqualTo(comment);

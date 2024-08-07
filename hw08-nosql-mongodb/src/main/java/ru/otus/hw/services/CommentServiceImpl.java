@@ -8,6 +8,7 @@ import ru.otus.hw.models.Book;
 import ru.otus.hw.models.Comment;
 import ru.otus.hw.repositories.BookRepository;
 import ru.otus.hw.repositories.CommentRepository;
+import ru.otus.hw.services.dto.CommentDto;
 
 import java.util.List;
 
@@ -20,28 +21,30 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<Comment> findAllByBookId(String bookId) {
-        return commentRepository.findAllByBookId(bookId);
+    public List<CommentDto> findAllByBookId(String bookId) {
+        return commentRepository.findAllByBookId(bookId).stream().map(CommentDto::new).toList();
     }
 
     @Override
     @Transactional
-    public Comment create(String text, String bookId) {
+    public CommentDto create(String text, String bookId) {
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new EntityNotFoundException("Book with id = %s not found".formatted(bookId)));
 
         Comment comment = new Comment(null, text, book);
-        return commentRepository.save(comment);
+        Comment saved = commentRepository.save(comment);
+        return new CommentDto(saved);
     }
 
     @Override
     @Transactional
-    public Comment update(String text, String id) {
+    public CommentDto update(String text, String id) {
         Comment comment = commentRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Comment with id = %s not found".formatted(id)));
         comment.setText(text);
 
-        return commentRepository.save(comment);
+        Comment updated = commentRepository.save(comment);
+        return new CommentDto(updated);
     }
 
     @Override

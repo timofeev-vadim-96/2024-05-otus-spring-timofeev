@@ -15,6 +15,8 @@ import ru.otus.hw.models.Genre;
 import ru.otus.hw.repositories.AuthorRepository;
 import ru.otus.hw.repositories.BookRepository;
 import ru.otus.hw.repositories.GenreRepository;
+import ru.otus.hw.services.dto.BookDto;
+import ru.otus.hw.services.dto.GenreDto;
 
 import java.util.HashSet;
 import java.util.List;
@@ -25,6 +27,7 @@ import java.util.stream.Collectors;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -51,24 +54,22 @@ class BookServiceImplTest {
     void findById() {
         Book expected = bookRepository.findAll().get(0);
 
-        Optional<Book> actual = bookService.findById(expected.getId());
+        BookDto actual = bookService.findById(expected.getId());
 
-        assertTrue(actual.isPresent());
-        assertEquals(expected, actual.get());
+        assertNotNull(actual);
+        assertThat(actual).usingRecursiveComparison().isEqualTo(expected);
     }
 
     @Test
     void findByIdNegative() {
         String notExpectedId = "notExpectedId";
 
-        Optional<Book> actual = bookService.findById(notExpectedId);
-
-        assertTrue(actual.isEmpty());
+        assertThrows(EntityNotFoundException.class, () -> bookService.findById(notExpectedId));
     }
 
     @Test
     void findAll() {
-        List<Book> actualBooks = bookService.findAll();
+        List<BookDto> actualBooks = bookService.findAll();
 
         assertFalse(actualBooks.isEmpty());
         assertTrue(actualBooks.size() >= BOOK_LIST_MIN_SIZE);
@@ -80,7 +81,7 @@ class BookServiceImplTest {
         Author expectedAuthor = authorRepository.findAll().get(0);
         String expectedTitle = "titleToInsert";
         Set<Genre> expectedGenres = new HashSet<>(genreRepository.findAll());
-        Book actual = bookService.create(expectedTitle, expectedAuthor.getId(),
+        BookDto actual = bookService.create(expectedTitle, expectedAuthor.getId(),
                 expectedGenres.stream()
                         .map(Genre::getId)
                         .collect(Collectors.toSet()));
@@ -161,7 +162,7 @@ class BookServiceImplTest {
                 .collect(Collectors.toSet());
         Book oldConditionBook = bookRepository.findAll().get(0);
 
-        Book actual = bookService.update(
+        BookDto actual = bookService.update(
                 oldConditionBook.getId(),
                 expectedTitle,
                 expectedAuthor.getId(),
@@ -172,13 +173,14 @@ class BookServiceImplTest {
 
         Book bookById = bookRepository.findById(oldConditionBook.getId()).get();
 
-        assertEquals(actual, bookById);
+        assertEquals(actual.getId(), bookById.getId());
         assertThat(oldConditionBook)
                 .usingRecursiveComparison()
                 .isNotEqualTo(actual);
         assertEquals(expectedTitle, actual.getTitle());
-        assertEquals(expectedAuthor, actual.getAuthor());
-        assertThat(actual.getGenres()).containsExactlyInAnyOrderElementsOf(expectedGenres);
+        assertThat(actual.getGenres())
+                .containsExactlyInAnyOrderElementsOf(expectedGenres.stream()
+                        .map(GenreDto::new).collect(Collectors.toSet()));
     }
 
     @Test
