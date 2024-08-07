@@ -1,0 +1,23 @@
+spring:
+  data:
+    mongodb:
+      port: 0
+      database: test
+      host: localhost
+
+# нужно для работы встроенной бд
+de:
+  flapdoodle:
+    mongodb:
+      embedded:
+        version: 4.0.2
+
+mongock:
+  runner-type: "ApplicationRunner" # default
+  #runner-type: "InitializingBean"
+  change-logs-scan-package:
+    - ru.otus.hw.mongock.changelogs
+  mongo-db:
+    write-concern:
+      journal: false
+    read-concern: local

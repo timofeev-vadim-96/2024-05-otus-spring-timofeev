@@ -1,0 +1,29 @@
+spring:
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: otus_mongo
+      authentication-database: admin #для авторизации пользователя
+      username: admin
+      password: password123
+
+  shell:
+    interactive:
+      enabled: true
+    noninteractive:
+      enabled: false
+
+    command:
+      version:
+        enabled: false
+
+mongock:
+#  runner-type: "ApplicationRunner" # default
+  runner-type: "InitializingBean" #для работы совместно с Spring Shell
+  change-logs-scan-package:
+    - ru.otus.hw.mongock.changelogs
+  mongo-db:
+    write-concern:
+      journal: false
+    read-concern: local
