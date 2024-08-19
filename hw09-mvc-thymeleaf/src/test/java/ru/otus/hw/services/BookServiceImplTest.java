@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 import java.util.stream.LongStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -48,10 +49,9 @@ class BookServiceImplTest {
     @ParameterizedTest
     @MethodSource("getDbBooks")
     void findById(BookDto book) {
-        Optional<BookDto> actual = bookService.findById(book.getId());
+        BookDto actual = bookService.findById(book.getId());
 
-        assertTrue(actual.isPresent());
-        assertThat(actual.get()).usingRecursiveComparison()
+        assertThat(actual).usingRecursiveComparison()
                 .isEqualTo(book);
     }
 
@@ -134,11 +134,11 @@ class BookServiceImplTest {
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     void deleteById() {
-        assertTrue(bookService.findById(2L).isPresent());
+        assertDoesNotThrow(()->bookService.findById(2L));
 
         bookService.deleteById(2L);
 
-        assertTrue(bookService.findById(2L).isEmpty());
+        assertThrows(EntityNotFoundException.class, ()->bookService.findById(2L));
     }
 
     private static List<AuthorDto> getDbAuthors() {
