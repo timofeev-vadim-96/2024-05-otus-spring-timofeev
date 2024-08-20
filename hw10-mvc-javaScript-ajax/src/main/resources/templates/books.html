@@ -28,7 +28,7 @@
     </style>
 </head>
 <body>
-<h1>Book list</h1>
+<h1>Book List</h1>
 <table class="books">
     <thead>
     <tr>
@@ -37,17 +37,32 @@
         <th>Author</th>
     </tr>
     </thead>
-    <tr th:each="book : ${books}">
-        <td>
-            <a href="book.html" th:href="@{/__${book.getId()}__}" th:text="${book.getId()}">1</a>
-        </td>
-        <td th:text="${book.title}">title</td>
-        <td th:text="${book.getAuthor().getFullName()}">author</td>
-    </tr>
+    <tbody id="bookTableBody">
+    </tbody>
 </table>
 <p></p>
-<a href="create.html" th:href="@{/create}">
-    <button type="button">Create a new book</button>
-</a>
+<button type="submit" onclick="window.location.href = '/create';">Create Book</button>
+
+<script>
+    fetch('api/v1/book')
+        .then(response => response.json())
+        .then(books => {
+            const bookTableBody = document.getElementById('bookTableBody');
+            books.forEach(book => {
+                const row = bookTableBody.insertRow();
+
+                row.insertCell().textContent = book.id;
+
+                // название с ссылкой
+                const idCell = row.insertCell();
+                const idLink = document.createElement('a');
+                idLink.href = `/book/${book.id}`;
+                idLink.textContent = book.title;
+                idCell.appendChild(idLink);
+
+                row.insertCell().textContent = book.author.fullName;
+            });
+        });
+</script>
 </body>
 </html>

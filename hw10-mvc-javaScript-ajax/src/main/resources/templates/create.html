@@ -33,41 +33,101 @@
 </head>
 <body>
 <!-- Book creation -->
-<!--описание действий при нажатии кнопки с type=submit-->
-<form id="create-form" action="books.html" th:method="post" th:action="@{/}" th:object="${book}">
+<form id="create-form">
     <h3>Create a book:</h3>
 
-    <div class="row">
-        <label for="title-input">title:</label>
-        <input id="title-input" type="text" name="title" value="title"/>
-        <!--обработка ошибок валидации поля title в книге-->
-        <div class="errors" th:if="${#fields.hasErrors('title')}" th:errors="*{title}">Wrong title error</div>
+    <div>
+        <label for="title">Title:</label>
+        <input type="text" id="title" name="title" required>
+        <div class="errors" id="titleErrors">Length must be larger or equals 3</div>
     </div>
-
     <div class="authors">
-        <!--выпадающий список авторов-->
         <label for="authors">author:</label>
-        <select id="authors" name="authors" th:field="*{authorId}">
-            <option th:each="author : ${authors}" th:value="${author.id}" th:text="${author.fullName}"></option>
+        <select id="authors" name="authors" required>
         </select>
     </div>
-
     <div class="genres">
-        <!--список жанров-->
         <label for="genres">genres:</label>
-        <select id="genres" name="genres" multiple size="5" th:field="*{genres}">
-            <option th:each="genre : ${genres}" th:value="${genre.id}" th:text="${genre.name}"></option>
+        <select id="genres" name="genres" multiple size="5">
         </select>
-        <div class="errors" th:if="${#fields.hasErrors('genres')}"
-             th:errors="*{genres}">At least one genre must be chosen</div>
+        <div class="errors" id="genresError">At least one genre must be chosen</div>
     </div>
+    <button type="submit">Create</button>
+    <button type="button" onclick="window.location.href = '/';">Cancel</button>
+</form>
 
-    <div class="row">
-        <button type="submit">Save</button>
-        <a href="books.html" th:href="@{/}">
-            <button type="button">Cancel</button>
-        </a>
-    </div>
+<script>
+    fetch('api/v1/author')
+        .then(response => response.json())
+        .then(authors => {
+            const authorsSelect = document.getElementById('authors');
+            authors.forEach(author => {
+                const option = document.createElement('option');
+                option.value = author.id;
+                option.text = author.fullName;
+                authorsSelect.appendChild(option);
+            });
+        })
+        .catch(error => {
+            console.error('Fetch error for authors:', error);
+        });
+    fetch('api/v1/genre')
+        .then(response => response.json())
+        .then(genres => {
+            const genreSelect = document.getElementById('genres');
+            genres.forEach(genre => {
+                const option = document.createElement('option');
+                option.value = genre.id;
+                option.text = genre.name;
+                genreSelect.appendChild(option);
+            });
+        })
+        .catch(error => {
+            console.error('Fetch error for genres:', error);
+        });
+
+    const createForm = document.getElementById('create-form');
+    createForm.addEventListener('submit', (event) => {
+        event.preventDefault(); //Предотвращаем стандартную отправку формы
+
+        const title = document.getElementById('title').value;
+        const authorId = document.getElementById('authors').value;
+        const selectedGenres = Array.from(document.getElementById('genres').selectedOptions)
+            .map(option => parseInt(option.value));
+
+        // Проверка на наличие выбранных жанров
+        if (selectedGenres.length === 0) {
+            const genresError = document.getElementById('genresError');
+            genresError.style.display = 'block';
+            return; // Не отправляем форму, если жанры не выбраны
+        }
+
+        // Отправка данных на сервер
+        fetch('api/v1/book', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                title: title,
+                authorId: authorId,
+                genres: selectedGenres // Массив выбранных жанров
+            })
+        })
+            .then(response => {
+                if (response.status === 201) {
+                    console.log('Book created successfully!');
+                    window.location.href = '/';
+                } else {
+                    console.error('Error creating book:', response.status);
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+            });
+    });
+</script>
+
 </form>
 </body>
 </html>

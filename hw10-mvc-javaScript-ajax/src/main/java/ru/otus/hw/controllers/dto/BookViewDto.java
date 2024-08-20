@@ -1,5 +1,6 @@
 package ru.otus.hw.controllers.dto;
 
+import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -13,8 +14,11 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BookViewDto {
+    @Nullable
+    private Long id;
+
     @NotNull
-    @Size(min = 2)
+    @Size(min = 3)
     private String title;
 
     @NotNull

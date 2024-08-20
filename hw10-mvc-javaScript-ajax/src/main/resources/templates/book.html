@@ -30,24 +30,18 @@
     </style>
 </head>
 <body>
-<a href="books.html" th:href="@{/}">
-    <button type="button">Cancel</button>
-</a>
+
+<button type="button" onclick="window.location.href = '/';">Back</button>
 <hr>
+
 <h3>Book info:</h3>
-<div class="row" th:object="${book}">
-    <p>id: <span th:text="*{id}">1</span></p>
-    <p>title: <span th:text="*{title}">title</span></p>
-    <p>author: <span th:text="*{author.getFullName()}">author</span></p>
-    <p>genres: <span th:text="${genres}">genres</span></p>
-    <a href="edit.html" th:href="@{/edit/__${book.getId()}__}">
-        <button type="button">Edit book</button>
-    </a>
-    <p></p>
-    <form id="delete-form" action="books.html" th:action="@{/delete/__${book.getId()}__}" th:method="post">
-        <button type="submit">Delete book</button>
-    </form>
-</div>
+<input type="hidden" id="bookId" th:value="${id}">
+<div id="bookDetails"></div>
+<button id="edit-button" type="button">Edit</button>
+<p></p>
+<button id="delete-button" type="button">Delete</button>
+<p></p>
+
 <h4>Comments on the book</h4>
 <table class="comments">
     <thead>
@@ -57,29 +51,153 @@
         <th></th>
     </tr>
     </thead>
-    <tr th:each="c : ${comments}">
-        <td th:text="${c.getId()}">id</td>
-        <td th:text="${c.getText()}">comment</td>
-        <td>
-            <form action="book.html" th:action="@{/comment/delete/__${c.getId()}__(bookId=${book.getId()})}"
-                  th:method="post">
-                <button type="submit">Delete</button>
-            </form>
-        </td>
-    </tr>
+    <tbody id="commentTableBody">
+    </tbody>
 </table>
-<p></p>
-<form id="comment-form" action="book.html" th:method="post" th:action="@{/comment/__${book.getId()}__}"
-      th:object="${comment}">
-    <div class="comment">
-        <label for="comment-input">New comment:</label>
-        <input id="comment-input" type="text" name="text" value="comment"/>
-        <!--обработка ошибок валидации поля title в книге-->
-        <div class="errors" th:if="${#fields.hasErrors('text')}"
-             th:errors="*{text}">a comment must be longer than 10 characters
-        </div>
-    </div>
-    <button type="submit">Write</button>
-</form>
+<div>
+    <label for="comment-input">New comment:</label>
+    <input type="text" id="comment-input" name="title" required>
+    <div class="errors" id="titleErrors">Length must be larger or equals 10</div>
+</div>
+<button id="write-comment-button" type="button">Write</button>
+
+<!--СКРИПТЫ ДЛЯ КНИГИ-->
+<script>
+    const api = 'http://localhost:8080/api/v1';
+    const bookId = document.getElementById('bookId').value;
+
+    fetch(`${api}/book/${bookId}`)
+        .then(response => response.json())
+        .then(book => {
+            const bookDetailsDiv = document.getElementById('bookDetails');
+            bookDetailsDiv.insertAdjacentHTML('beforeend', `
+<p>id: ${book.id}</p>
+<p>title: ${book.title}</p>
+<p>author: ${book.author.fullName}</p>
+<p>genres:
+    <ul>
+        ${book.genres.map(g => `<li>${g.name}</li>`).join('')}
+    </ul>
+</p>
+                `);
+        });
+
+    const deleteButton = document.getElementById('delete-button');
+    deleteButton.addEventListener('click', () => {
+        fetch(`${api}/book/${bookId}`, {
+            method: 'DELETE'
+        })
+            .then(response => {
+                if (response.ok) {
+                    console.log('Book deleted successfully!');
+                    window.location.href = '/';
+                } else {
+                    console.error('Error deleting book:', response.status);
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+            });
+    });
+
+    const editButton = document.getElementById('edit-button');
+    editButton.addEventListener('click', () => {
+        window.location.href = `/edit/${bookId}`;
+    });
+
+    <!--Скрипты для комментария-->
+    //список комментариев
+    buildCommentTable();
+
+    const writeCommentButton = document.getElementById('write-comment-button');
+    writeCommentButton.addEventListener('click', () => {
+        const comment = document.getElementById('comment-input').value;
+
+        // Отправка данных на сервер
+        fetch(`${api}/comment`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                text: comment,
+                bookId: bookId,
+            })
+        })
+            .then(response => {
+                if (response.status === 201) {
+                    console.log('Comment created successfully!');
+
+                    response.json().then(comment => {
+                        const bookTableBody = document.getElementById('commentTableBody');
+                        const row = bookTableBody.insertRow();
+
+                        row.insertCell().textContent = comment.id;
+                        row.insertCell().textContent = comment.text;
+
+                        //Кнопка удаления комментария
+                        const deleteCell = row.insertCell();
+                        const deleteButton = document.createElement('button');
+                        deleteButton.textContent = 'Delete';
+                        deleteButton.addEventListener('click', () => {
+                            deleteComment(comment.id);
+                            row.remove(); // удаление комментария из таблицы
+                        });
+                        deleteCell.appendChild(deleteButton);
+                    });
+                } else {
+                    console.error('Error creating comment:', response.status);
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+            });
+    })
+
+    function buildCommentTable() {
+        fetch(`${api}/comment/${bookId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(comments => {
+                const bookTableBody = document.getElementById('commentTableBody');
+                comments.forEach(comment => {
+                    const row = bookTableBody.insertRow();
+
+                    row.insertCell().textContent = comment.id;
+                    row.insertCell().textContent = comment.text;
+
+                    //Кнопка удаления комментария
+                    const deleteCell = row.insertCell();
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = 'Delete';
+                    deleteButton.addEventListener('click', () => {
+                        deleteComment(comment.id);
+                        row.remove(); // удаление комментария из таблицы
+                    });
+                    deleteCell.appendChild(deleteButton);
+                });
+            });
+    }
+
+    function deleteComment(commentId) {
+        fetch(`${api}/comment/${commentId}`, {
+            method: 'DELETE'
+        })
+            .then(response => {
+                if (response.ok) {
+                    console.log('Comment deleted successfully!');
+                } else {
+                    console.error('Error deleting comment:', response.status);
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+            });
+    }
+</script>
 </body>
 </html>

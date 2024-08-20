@@ -13,4 +13,7 @@ public class CommentViewDto {
     @NotNull
     @Size(min = 10)
     private String text;
+
+    @NotNull
+    private Long bookId;
 }
