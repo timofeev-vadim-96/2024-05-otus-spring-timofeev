@@ -95,8 +95,8 @@ class BookControllerTest {
                         .param("genres", book.getGenres()
                                 .toString().replace("[", "")
                                 .replace("]", "")))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/"));
+                .andExpect(status().isOk())
+                .andExpect(view().name("books"));
 
         verify(bookService, times(1))
                 .update(
@@ -148,8 +148,8 @@ class BookControllerTest {
                         .param("genres", book.getGenres()
                                 .toString().replace("[", "")
                                 .replace("]", "")))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/"));
+                .andExpect(status().isOk())
+                .andExpect(view().name("books"));
 
         verify(bookService, times(1))
                 .create(
@@ -214,8 +214,8 @@ class BookControllerTest {
         doNothing().when(bookService).deleteById(id);
 
         mvc.perform(MockMvcRequestBuilders.post("/delete/{id}", id))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/"));
+                .andExpect(status().isOk())
+                .andExpect(view().name("books"));
         verify(bookService, times(1)).deleteById(1);
     }
 }
