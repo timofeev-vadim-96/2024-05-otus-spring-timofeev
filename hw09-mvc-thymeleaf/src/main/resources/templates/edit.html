@@ -46,7 +46,8 @@
 
     <div class="authors">
         <!--выпадающий список авторов-->
-        <label for="authors">author:</label>
+        <p>current author: <span th:text="${book.author.getFullName()}">author</span></p>
+        <label for="authors">choose an author:</label>
         <select id="authors" name="authors" th:field="*{authorId}">
             <option th:each="author : ${authors}" th:value="${author.id}" th:text="${author.fullName}"></option>
         </select>
@@ -54,6 +55,10 @@
 
     <div class="genres">
         <!--список жанров-->
+        <p>current genres:
+        <ul th:each="genre: ${book.genres}" th:text="${genre.name}">
+        </ul>
+        </p>
         <label for="genres">genres:</label>
         <select id="genres" name="genres" multiple size="5" th:field="*{genres}">
             <option th:each="genre : ${genres}" th:value="${genre.id}" th:text="${genre.name}"></option>

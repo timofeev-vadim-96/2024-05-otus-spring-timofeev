@@ -39,7 +39,10 @@
     <p>id: <span th:text="*{id}">1</span></p>
     <p>title: <span th:text="*{title}">title</span></p>
     <p>author: <span th:text="*{author.getFullName()}">author</span></p>
-    <p>genres: <span th:text="${genres}">genres</span></p>
+    <p>genres:
+    <ul th:each="genre: ${book.genres}" th:text="${genre.name}">
+    </ul>
+    </p>
     <a href="edit.html" th:href="@{/edit/__${book.getId()}__}">
         <button type="button">Edit book</button>
     </a>
@@ -76,7 +79,7 @@
         <input id="comment-input" type="text" name="text" value="comment"/>
         <!--обработка ошибок валидации поля title в книге-->
         <div class="errors" th:if="${#fields.hasErrors('text')}"
-             th:errors="*{text}">a comment must be longer than 10 characters
+             th:errors="*{text}">a comment must be longer than 10 characters>
         </div>
     </div>
     <button type="submit">Write</button>
