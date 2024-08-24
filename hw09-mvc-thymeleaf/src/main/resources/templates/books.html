@@ -39,14 +39,14 @@
     </thead>
     <tr th:each="book : ${books}">
         <td>
-            <a href="book.html" th:href="@{/__${book.getId()}__}" th:text="${book.getId()}">1</a>
+            <a href="book.html" th:href="@{/book/book_page/__${book.getId()}__}" th:text="${book.getId()}">1</a>
         </td>
         <td th:text="${book.title}">title</td>
         <td th:text="${book.getAuthor().getFullName()}">author</td>
     </tr>
 </table>
 <p></p>
-<a href="create.html" th:href="@{/create}">
+<a href="create.html" th:href="@{/book/create_page}">
     <button type="button">Create a new book</button>
 </a>
 </body>

@@ -33,7 +33,7 @@
 </head>
 <body>
 <!-- Book editing -->
-<form id="edit-form" action="books.html" th:method="post" th:action="@{/__${book.getId()}__}"
+<form id="edit-form" action="books.html" th:method="post" th:action="@{/book/edit/__${book.getId()}__}"
       th:object="${dto}">
     <h3>Edit the book:</h3>
 

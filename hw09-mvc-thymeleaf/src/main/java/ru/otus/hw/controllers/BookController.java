@@ -35,8 +35,8 @@ public class BookController {
 
     private final GenreService genreService;
 
-    @GetMapping(value = "/{id}")
-    public String get(@PathVariable("id") long id, Model model) {
+    @GetMapping(value = "/book/book_page/{id}")
+    public String getBookPage(@PathVariable("id") long id, Model model) {
         BookDto book = bookService.findById(id);
         model.addAttribute("book", book);
         model.addAttribute("genres", book.getGenres());
@@ -47,7 +47,7 @@ public class BookController {
         return "book";
     }
 
-    @GetMapping(value = "/edit/{id}")
+    @GetMapping(value = "/book/edit_page/{id}")
     public String getEditPage(@PathVariable("id") long id, Model model) {
         BookDto book = bookService.findById(id);
         List<AuthorDto> authors = authorService.findAll();
@@ -61,33 +61,31 @@ public class BookController {
         return "edit";
     }
 
-    @PostMapping(value = "/{id}")
+    @PostMapping(value = "/book/edit/{id}")
     public String update(@PathVariable("id") long id,
                          @Valid @ModelAttribute("dto") BookViewDto dto,
-                         BindingResult result,
-                         Model model) {
+                         BindingResult result) {
         if (result.hasErrors()) {
-            return getEditPage(id, model);
+            return "redirect:/book/edit_page/" + id;
         }
 
         bookService.update(id, dto.getTitle(), dto.getAuthorId(), dto.getGenres());
-        return getAll(model);
+        return "redirect:/";
     }
 
-    @PostMapping()
+    @PostMapping("/book/create")
     public String create(@Valid @ModelAttribute("book") BookViewDto book,
-                         BindingResult result,
-                         Model model) {
+                         BindingResult result) {
         if (result.hasErrors()) {
-            return getCreatePage(model);
+            return "redirect:/book/create_page";
         }
 
         bookService.create(book.getTitle(), book.getAuthorId(), book.getGenres());
 
-        return getAll(model);
+        return "redirect:/";
     }
 
-    @GetMapping("/create")
+    @GetMapping("/book/create_page")
     public String getCreatePage(Model model) {
         List<AuthorDto> authors = authorService.findAll();
         List<GenreDto> genres = genreService.findAll();
@@ -99,17 +97,17 @@ public class BookController {
         return "create";
     }
 
-    @GetMapping
+    @GetMapping("/")
     public String getAll(Model model) {
         List<BookDto> books = bookService.findAll();
         model.addAttribute("books", books);
         return "books";
     }
 
-    @PostMapping(value = "delete/{id}")
-    public String delete(@PathVariable("id") long id, Model model) {
+    @PostMapping(value = "/book/delete/{id}")
+    public String delete(@PathVariable("id") long id) {
         bookService.deleteById(id);
 
-        return getAll(model);
+        return "redirect:/";
     }
 }
