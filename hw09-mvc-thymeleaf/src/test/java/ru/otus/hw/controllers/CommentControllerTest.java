@@ -28,8 +28,10 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 @WebMvcTest(value = {CommentController.class})
 @DisplayName("контроллер для работы с комментариями")
@@ -81,8 +83,11 @@ class CommentControllerTest {
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("text", "") // invalid field
                         .param("bookId", String.valueOf(bookId)))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/book/book_page/" + bookId));
+                .andExpect(status().isOk())
+                .andExpect(view().name("book"))
+                .andExpect(model().attributeExists("book"))
+                .andExpect(model().attributeExists("comments"))
+                .andExpect(model().attributeExists("genres"));
         verify(commentService, Mockito.never()).create(anyString(), anyLong());
     }
 

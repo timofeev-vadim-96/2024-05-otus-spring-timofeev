@@ -1,5 +1,6 @@
 package ru.otus.hw.controllers;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,12 +48,17 @@ class BookControllerTest {
     @MockBean
     GenreService genreService;
 
-    @Test
-    void getBookPage() throws Exception {
-        BookDto book = new BookDto(
+    BookDto book;
+
+    @BeforeEach
+    void setUp() {
+        book = new BookDto(
                 1L, "title", new AuthorDto(), List.of(new GenreDto(1L, "Genre_1")));
         when(bookService.findById(1L)).thenReturn(book);
+    }
 
+    @Test
+    void getBookPage() throws Exception {
         mvc.perform(MockMvcRequestBuilders.get("/book/book_page/{id}", book.getId()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("book"))
@@ -120,8 +126,14 @@ class BookControllerTest {
                         .param("genres", book.getGenres()
                                 .toString().replace("[", "")
                                 .replace("]", "")))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/book/edit_page/1"));
+                .andExpect(status().isOk())
+                .andExpect(view().name("edit"))
+                .andExpect(model().attributeExists("book"))
+                .andExpect(model().attributeExists("authors"))
+                .andExpect(model().attributeExists("genres"));
+        verify(authorService, times(1)).findAll();
+        verify(genreService, times(1)).findAll();
+        verify(bookService, times(1)).findById(1L);
     }
 
     @Test
@@ -162,8 +174,12 @@ class BookControllerTest {
                         .param("genres", book.getGenres()
                                 .toString().replace("[", "")
                                 .replace("]", "")))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/book/create_page"));
+                .andExpect(status().isOk())
+                .andExpect(view().name("create"))
+                .andExpect(model().attributeExists("authors"))
+                .andExpect(model().attributeExists("genres"));
+        verify(authorService, times(1)).findAll();
+        verify(genreService, times(1)).findAll();
     }
 
     @Test

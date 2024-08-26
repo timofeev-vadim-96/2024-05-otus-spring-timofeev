@@ -64,9 +64,13 @@ public class BookController {
     @PostMapping(value = "/book/edit/{id}")
     public String update(@PathVariable("id") long id,
                          @Valid @ModelAttribute("dto") BookViewDto dto,
-                         BindingResult result) {
+                         BindingResult result,
+                         Model model) {
         if (result.hasErrors()) {
-            return "redirect:/book/edit_page/" + id;
+            BookDto book = bookService.findById(id);
+            model.addAttribute("book", book);
+            populateModelWithCatalogs(model);
+            return "edit";
         }
 
         bookService.update(id, dto.getTitle(), dto.getAuthorId(), dto.getGenres());
@@ -75,9 +79,11 @@ public class BookController {
 
     @PostMapping("/book/create")
     public String create(@Valid @ModelAttribute("book") BookViewDto book,
-                         BindingResult result) {
+                         BindingResult result,
+                         Model model) {
         if (result.hasErrors()) {
-            return "redirect:/book/create_page";
+            populateModelWithCatalogs(model);
+            return "create";
         }
 
         bookService.create(book.getTitle(), book.getAuthorId(), book.getGenres());
@@ -109,5 +115,13 @@ public class BookController {
         bookService.deleteById(id);
 
         return "redirect:/";
+    }
+
+    private void populateModelWithCatalogs(Model model) {
+        List<AuthorDto> authors = authorService.findAll();
+        List<GenreDto> genres = genreService.findAll();
+
+        model.addAttribute("authors", authors);
+        model.addAttribute("genres", genres);
     }
 }
