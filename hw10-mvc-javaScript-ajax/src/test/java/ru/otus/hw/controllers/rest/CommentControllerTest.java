@@ -35,19 +35,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("контроллер для работы с комментариями")
 class CommentControllerTest {
     @Autowired
-    MockMvc mvc;
+    private MockMvc mvc;
 
     @Autowired
-    ObjectMapper mapper;
+    private ObjectMapper mapper;
 
     @MockBean
-    CommentService commentService;
+    private CommentService commentService;
 
     @MockBean
-    BookService bookService;
+    private BookService bookService;
 
-    CommentDto comment;
-    CommentViewDto dto;
+    private CommentDto comment;
+    private CommentViewDto dto;
 
     @BeforeEach
     void setUp() {

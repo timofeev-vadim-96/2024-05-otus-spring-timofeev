@@ -23,16 +23,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("Контроллер для работы с жанрами")
 class GenreControllerTest {
     @Autowired
-    MockMvc mvc;
+    private MockMvc mvc;
 
     @Autowired
-    ObjectMapper mapper;
-
-    @Autowired
-    GenreController genreController;
+    private ObjectMapper mapper;
 
     @MockBean
-    GenreService genreService;
+    private GenreService genreService;
 
     @Test
     void getAll() throws Exception {

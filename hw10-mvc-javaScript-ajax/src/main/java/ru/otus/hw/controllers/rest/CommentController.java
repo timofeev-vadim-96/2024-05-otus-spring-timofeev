@@ -10,9 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 import ru.otus.hw.controllers.dto.CommentViewDto;
-import ru.otus.hw.exceptions.EntityNotFoundException;
 import ru.otus.hw.services.CommentService;
 import ru.otus.hw.services.dto.CommentDto;
 
@@ -25,12 +23,8 @@ public class CommentController {
 
     @PostMapping("/api/v1/comment")
     public ResponseEntity<CommentDto> create(@Valid @RequestBody CommentViewDto comment) {
-        try {
-            CommentDto created = commentService.create(comment.getText(), comment.getBookId());
-            return new ResponseEntity<>(created, HttpStatus.CREATED);
-        } catch (EntityNotFoundException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
-        }
+        CommentDto created = commentService.create(comment.getText(), comment.getBookId());
+        return new ResponseEntity<>(created, HttpStatus.CREATED);
     }
 
     @DeleteMapping("/api/v1/comment/{id}")
@@ -41,11 +35,7 @@ public class CommentController {
 
     @GetMapping("/api/v1/comment/{bookId}")
     public ResponseEntity<List<CommentDto>> getAll(@PathVariable("bookId") long bookId) {
-        try {
-            List<CommentDto> comments = commentService.findAllByBookId(bookId);
-            return new ResponseEntity<>(comments, HttpStatus.OK);
-        } catch (EntityNotFoundException e) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
-        }
+        List<CommentDto> comments = commentService.findAllByBookId(bookId);
+        return new ResponseEntity<>(comments, HttpStatus.OK);
     }
 }

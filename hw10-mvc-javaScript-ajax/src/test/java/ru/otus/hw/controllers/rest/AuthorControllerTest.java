@@ -23,16 +23,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("Контроллер для работы с авторами")
 class AuthorControllerTest {
     @Autowired
-    MockMvc mvc;
+    private MockMvc mvc;
 
     @Autowired
-    ObjectMapper mapper;
-
-    @Autowired
-    AuthorController authorController;
+    private ObjectMapper mapper;
 
     @MockBean
-    AuthorService authorService;
+    private AuthorService authorService;
 
     @Test
     void getAll() throws Exception {

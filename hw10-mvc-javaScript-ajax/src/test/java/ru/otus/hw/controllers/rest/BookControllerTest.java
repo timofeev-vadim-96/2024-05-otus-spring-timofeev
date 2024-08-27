@@ -11,7 +11,6 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ru.otus.hw.controllers.dto.BookViewDto;
-import ru.otus.hw.controllers.rest.BookController;
 import ru.otus.hw.exceptions.EntityNotFoundException;
 import ru.otus.hw.services.AuthorService;
 import ru.otus.hw.services.BookService;
@@ -35,26 +34,26 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @DisplayName("контроллер для работы с книгами")
 class BookControllerTest {
     @Autowired
-    MockMvc mvc;
+    private MockMvc mvc;
 
     @Autowired
-    ObjectMapper mapper;
+    private ObjectMapper mapper;
 
     @MockBean
-    BookService bookService;
+    private BookService bookService;
 
     @MockBean
-    CommentService commentService;
+    private CommentService commentService;
 
     @MockBean
-    AuthorService authorService;
+    private AuthorService authorService;
 
     @MockBean
-    GenreService genreService;
+    private GenreService genreService;
 
-    BookDto book;
+    private BookDto book;
 
-    BookViewDto dto;
+    private BookViewDto dto;
 
     @BeforeEach
     void setUp() {

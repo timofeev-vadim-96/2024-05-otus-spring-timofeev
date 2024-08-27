@@ -21,10 +21,6 @@
             background: lightgray;
         }
 
-        .row {
-            margin-top: 10px;
-        }
-
         .errors {
             color: red;
         }
@@ -39,7 +35,7 @@
     <div>
         <label for="title">Title:</label>
         <input type="text" id="title" name="title" required>
-        <div class="errors" id="titleErrors">Length must be larger or equals 3</div>
+        <div class="errors" id="title-errors"></div>
     </div>
     <div class="authors">
         <label for="authors">author:</label>
@@ -50,7 +46,7 @@
         <label for="genres">genres:</label>
         <select id="genres" name="genres" multiple size="5">
         </select>
-        <div class="errors" id="genresError">At least one genre must be chosen</div>
+        <div class="errors" id="genre-errors"></div>
     </div>
     <button type="submit">Create</button>
     <button type="button" onclick="window.location.href = '/';">Cancel</button>
@@ -91,15 +87,35 @@
         event.preventDefault(); //Предотвращаем стандартную отправку формы
 
         const title = document.getElementById('title').value;
+        const titleErrorsDiv = document.getElementById("title-errors");
+
+        if (title.length >= 3) {
+            titleErrorsDiv.style.display = "none"; // Скрываем сообщение об ошибке
+        } else {
+            titleErrorsDiv.textContent = "Length must be larger or equals 3";
+            titleErrorsDiv.style.display = "block"; // Показываем сообщение об ошибке
+        }
+
         const authorId = document.getElementById('authors').value;
-        const selectedGenres = Array.from(document.getElementById('genres').selectedOptions)
+
+        const genresField = document.getElementById('genres');
+        const errorsDiv = document.getElementById('genre-errors');
+
+        //вывод сообщения о необходимости выбора жанра, и его исчезание после выбора
+        if (genresField.selectedOptions.length === 0) {
+            errorsDiv.textContent = 'At least one genre must be chosen';
+            errorsDiv.style.display = 'block';
+        } else {
+            errorsDiv.textContent = '';
+            errorsDiv.style.display = 'none';
+        }
+
+        const selectedGenres = Array.from(genresField.selectedOptions)
             .map(option => parseInt(option.value));
 
         // Проверка на наличие выбранных жанров
-        if (selectedGenres.length === 0) {
-            const genresError = document.getElementById('genresError');
-            genresError.style.display = 'block';
-            return; // Не отправляем форму, если жанры не выбраны
+        if (selectedGenres.length === 0 || title.length < 3) {
+            return; // Не отправляем форму, если жанры не выбраны, или наименование слишком короткое
         }
 
         // Отправка данных на сервер
@@ -118,6 +134,10 @@
                 if (response.status === 201) {
                     console.log('Book created successfully!');
                     window.location.href = '/';
+                } else if (response.status === 400) {
+                    console.log('Field title need to be unique')
+                    titleErrorsDiv.textContent = "Field title need to be unique";
+                    titleErrorsDiv.style.display = "block"; // Показываем сообщение об ошибке
                 } else {
                     console.error('Error creating book:', response.status);
                 }

@@ -44,7 +44,7 @@
 <button type="submit" onclick="window.location.href = '/create';">Create Book</button>
 
 <script>
-    fetch('api/v1/book')
+    fetch('/api/v1/book')
         .then(response => response.json())
         .then(books => {
             const bookTableBody = document.getElementById('bookTableBody');

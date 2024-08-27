@@ -12,7 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(value = PageController.class)
 class PageControllerTest {
     @Autowired
-    MockMvc mvc;
+    private MockMvc mvc;
 
     @Test
     void create() throws Exception {
