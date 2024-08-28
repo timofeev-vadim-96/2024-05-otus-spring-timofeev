@@ -31,9 +31,9 @@ public class BookController {
     }
 
     @PutMapping("/api/v1/book")
-    public ResponseEntity<?> update(@Valid @RequestBody BookViewDto book) {
+    public ResponseEntity<BookDto> update(@Valid @RequestBody BookViewDto book) {
         if (book.getId() == null) {
-            return new ResponseEntity<>("Book id must not be null", HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         BookDto updated = bookService.update(book.getId(), book.getTitle(), book.getAuthorId(), book.getGenres());
         return new ResponseEntity<>(updated, HttpStatus.OK);
