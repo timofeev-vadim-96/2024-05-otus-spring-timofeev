@@ -19,5 +19,7 @@
         <module>hw06-jpa</module>
         <module>hw07-data-jpa</module>
         <module>hw08-nosql-mongodb</module>
+        <module>hw09-mvc-thymeleaf</module>
+        <module>hw10-mvc-javaScript-ajax</module>
     </modules>
 </project>

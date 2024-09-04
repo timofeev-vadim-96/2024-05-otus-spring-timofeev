@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"> <!--Не забывать прописывать-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style type="text/css">
+        body {
+            padding: 50px;
+        }
+
+        label {
+            display: inline-block;
+            width: 100px;
+        }
+
+        input:read-only {
+            background: lightgray;
+        }
+
+        .row {
+            margin-top: 10px;
+        }
+
+        .errors {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+
+<button type="button" onclick="window.location.href = '/';">Back</button>
+<hr>
+
+<h3>Book info:</h3>
+<input type="hidden" id="bookId" th:value="${id}">
+<div id="bookDetails"></div>
+<button id="edit-button" type="button">Edit</button>
+<p></p>
+<button id="delete-button" type="button">Delete</button>
+<p></p>
+
+<h4>Comments on the book</h4>
+<table class="comments">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Comment</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody id="commentTableBody">
+    </tbody>
+</table>
+<div>
+    <label for="comment-input">New comment:</label>
+    <input type="text" id="comment-input" name="title" required>
+    <div class="errors" id="titleErrors">Length must be larger or equals 10</div>
+</div>
+<button id="write-comment-button" type="button">Write</button>
+
+<!--СКРИПТЫ ДЛЯ КНИГИ-->
+<script>
+    const bookId = document.getElementById('bookId').value;
+
+    fetch(`/api/v1/book/${bookId}`)
+        .then(response => response.json())
+        .then(book => {
+            const bookDetailsDiv = document.getElementById('bookDetails');
+            bookDetailsDiv.insertAdjacentHTML('beforeend', `
+<p>id: ${book.id}</p>
+<p>title: ${book.title}</p>
+<p>author: ${book.author.fullName}</p>
+<p>genres:
+    <ul>
+        ${book.genres.map(g => `<li>${g.name}</li>`).join('')}
+    </ul>
+</p>
+                `);
+        });
+
+    const deleteButton = document.getElementById('delete-button');
+    deleteButton.addEventListener('click', () => {
+        fetch(`/api/v1/book/${bookId}`, {
+            method: 'DELETE'
+        })
+            .then(response => {
+                if (response.ok) {
+                    console.log('Book deleted successfully!');
+                    window.location.href = '/';
+                } else {
+                    console.error('Error deleting book:', response.status);
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+            });
+    });
+
+    const editButton = document.getElementById('edit-button');
+    editButton.addEventListener('click', () => {
+        window.location.href = `/edit/${bookId}`;
+    });
+
+    <!--Скрипты для комментария-->
+    //список комментариев
+    buildCommentTable();
+
+    const writeCommentButton = document.getElementById('write-comment-button');
+    writeCommentButton.addEventListener('click', () => {
+        const comment = document.getElementById('comment-input').value;
+
+        // Отправка данных на сервер
+        fetch('/api/v1/comment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                text: comment,
+                bookId: bookId,
+            })
+        })
+            .then(response => {
+                if (response.status === 201) {
+                    console.log('Comment created successfully!');
+
+                    response.json().then(comment => {
+                        const bookTableBody = document.getElementById('commentTableBody');
+                        const row = bookTableBody.insertRow();
+
+                        row.insertCell().textContent = comment.id;
+                        row.insertCell().textContent = comment.text;
+
+                        //Кнопка удаления комментария
+                        const deleteCell = row.insertCell();
+                        const deleteButton = document.createElement('button');
+                        deleteButton.textContent = 'Delete';
+                        deleteButton.addEventListener('click', () => {
+                            deleteComment(comment.id);
+                            row.remove(); // удаление комментария из таблицы
+                        });
+                        deleteCell.appendChild(deleteButton);
+                    });
+                } else {
+                    console.error('Error creating comment:', response.status);
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+            });
+    })
+
+    function buildCommentTable() {
+        fetch(`/api/v1/comment/${bookId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+            .then(response => response.json())
+            .then(comments => {
+                const bookTableBody = document.getElementById('commentTableBody');
+                comments.forEach(comment => {
+                    const row = bookTableBody.insertRow();
+
+                    row.insertCell().textContent = comment.id;
+                    row.insertCell().textContent = comment.text;
+
+                    //Кнопка удаления комментария
+                    const deleteCell = row.insertCell();
+                    const deleteButton = document.createElement('button');
+                    deleteButton.textContent = 'Delete';
+                    deleteButton.addEventListener('click', () => {
+                        deleteComment(comment.id);
+                        row.remove(); // удаление комментария из таблицы
+                    });
+                    deleteCell.appendChild(deleteButton);
+                });
+            });
+    }
+
+    function deleteComment(commentId) {
+        fetch(`/api/v1/comment/${commentId}`, {
+            method: 'DELETE'
+        })
+            .then(response => {
+                if (response.ok) {
+                    console.log('Comment deleted successfully!');
+                } else {
+                    console.error('Error deleting comment:', response.status);
+                }
+            })
+            .catch(error => {
+                console.error('Fetch error:', error);
+            });
+    }
+</script>
+</body>
+</html>

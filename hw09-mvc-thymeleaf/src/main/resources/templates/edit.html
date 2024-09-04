@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"> <!--Не забывать прописывать-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Editing a book</title>
+
+    <style type="text/css">
+        body {
+            padding: 50px;
+        }
+
+        label {
+            display: inline-block;
+            width: 100px;
+        }
+
+        input:read-only {
+            background: lightgray;
+        }
+
+        .row {
+            margin-top: 10px;
+        }
+
+        .errors {
+            color: red;
+        }
+    </style>
+
+</head>
+<body>
+<!-- Book editing -->
+<form id="edit-form" action="books.html" th:method="post" th:action="@{/book/edit/__${book.getId()}__}"
+      th:object="${dto}">
+    <h3>Edit the book:</h3>
+
+    <div class="row">
+        <label for="title-input">title:</label>
+        <input id="title-input" type="text" name="title" value="title" th:value="${book.title}"/>
+        <!--обработка ошибок валидации поля title в книге-->
+        <div class="errors" th:if="${#fields.hasErrors('title')}" th:errors="*{title}">Wrong title error</div>
+    </div>
+
+    <div class="authors">
+        <!--выпадающий список авторов-->
+        <p>current author: <span th:text="${book.author.getFullName()}">author</span></p>
+        <label for="authors">choose an author:</label>
+        <select id="authors" name="authors" th:field="*{authorId}">
+            <option th:each="author : ${authors}" th:value="${author.id}" th:text="${author.fullName}"></option>
+        </select>
+    </div>
+
+    <div class="genres">
+        <!--список жанров-->
+        <p>current genres:
+        <ul th:each="genre: ${book.genres}" th:text="${genre.name}">
+        </ul>
+        </p>
+        <label for="genres">genres:</label>
+        <select id="genres" name="genres" multiple size="5" th:field="*{genres}">
+            <option th:each="genre : ${genres}" th:value="${genre.id}" th:text="${genre.name}"></option>
+        </select>
+        <div class="errors" th:if="${#fields.hasErrors('genres')}"
+             th:errors="*{genres}">At least one genre must be chosen
+        </div>
+    </div>
+
+    <div class="row">
+        <button type="submit">Edit</button>
+        <a href="books.html" th:href="@{/}">
+            <button type="button">Cancel</button>
+        </a>
+    </div>
+</form>
+</body>
+</html>

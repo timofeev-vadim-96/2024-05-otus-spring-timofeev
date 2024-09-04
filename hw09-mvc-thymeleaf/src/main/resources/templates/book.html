@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"> <!--Не забывать прописывать-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style type="text/css">
+        body {
+            padding: 50px;
+        }
+
+        label {
+            display: inline-block;
+            width: 100px;
+        }
+
+        input:read-only {
+            background: lightgray;
+        }
+
+        .row {
+            margin-top: 10px;
+        }
+
+        .errors {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+<a href="books.html" th:href="@{/}">
+    <button type="button">Cancel</button>
+</a>
+<hr>
+<h3>Book info:</h3>
+<div class="row" th:object="${book}">
+    <p>id: <span th:text="*{id}">1</span></p>
+    <p>title: <span th:text="*{title}">title</span></p>
+    <p>author: <span th:text="*{author.getFullName()}">author</span></p>
+    <p>genres:
+    <ul th:each="genre: ${book.genres}" th:text="${genre.name}">
+    </ul>
+    </p>
+    <a href="edit.html" th:href="@{/book/edit_page/__${book.getId()}__}">
+        <button type="button">Edit book</button>
+    </a>
+    <p></p>
+    <form id="delete-form" action="books.html" th:action="@{/book/delete/__${book.getId()}__}" th:method="post">
+        <button type="submit">Delete book</button>
+    </form>
+</div>
+<h4>Comments on the book</h4>
+<table class="comments">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Comment</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tr th:each="c : ${comments}">
+        <td th:text="${c.getId()}">id</td>
+        <td th:text="${c.getText()}">comment</td>
+        <td>
+            <form action="book.html" th:action="@{/comment/delete/__${c.getId()}__(bookId=${book.getId()})}"
+                  th:method="post">
+                <button type="submit">Delete</button>
+            </form>
+        </td>
+    </tr>
+</table>
+<p></p>
+<form id="comment-form" action="book.html" th:method="post" th:action="@{/comment/create/__${book.getId()}__}"
+      th:object="${comment}">
+    <div class="comment">
+        <label for="comment-input">New comment:</label>
+        <input id="comment-input" type="text" name="text" value="comment"/>
+        <!--обработка ошибок валидации поля title в книге-->
+        <div class="errors" th:if="${#fields.hasErrors('text')}"
+             th:errors="*{text}">a comment must be longer than 10 characters>
+        </div>
+    </div>
+    <button type="submit">Write</button>
+</form>
+</body>
+</html>
