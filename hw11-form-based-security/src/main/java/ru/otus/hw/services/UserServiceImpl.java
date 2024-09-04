@@ -37,8 +37,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserDto create(String principal, String credentials, Authority authority) {
-        CustomUser user = new CustomUser(null, principal, passwordEncoder.encode(credentials), authority.name());
+    public UserDto create(String username, String password, Authority authority) {
+        CustomUser user = new CustomUser(null, username, passwordEncoder.encode(password), authority.name());
 
         CustomUser saved = userRepository.save(user);
         return new UserDto(saved);
@@ -46,11 +46,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserDto update(long id, String principal, String credentials, Authority authority) {
+    public UserDto update(long id, String username, String password, Authority authority) {
         CustomUser user = userRepository.findById(id).orElseThrow(() ->
                 new EntityNotFoundException("User with id = %d not found".formatted(id)));
-        user.setPrincipal(principal);
-        user.setCredentials(passwordEncoder.encode(credentials));
+        user.setUsername(username);
+        user.setPassword(passwordEncoder.encode(password));
         user.setAuthority(authority.name());
 
         CustomUser updated = userRepository.save(user);

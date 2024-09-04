@@ -10,9 +10,9 @@ public interface UserService {
 
     List<UserDto> findAll();
 
-    UserDto create(String principal, String credentials, Authority authority);
+    UserDto create(String username, String password, Authority authority);
 
-    UserDto update(long id, String principal, String credentials, Authority authority);
+    UserDto update(long id, String username, String password, Authority authority);
 
     void deleteById(long id);
 }

@@ -11,16 +11,13 @@ import ru.otus.hw.models.CustomUser;
 public class UserDto {
     private Long id;
 
-    private String principal;
-
-    private String credentials;
+    private String username;
 
     private String authority;
 
     public UserDto (CustomUser user) {
         this.id = user.getId();
-        this.principal = user.getPrincipal();
-        this.credentials = user.getCredentials();
+        this.username = user.getUsername();
         this.authority = user.getAuthority();
     }
 }

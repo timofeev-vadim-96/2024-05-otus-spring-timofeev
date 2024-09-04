@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -19,11 +18,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.intercept.AuthorizationFilter;
-import org.springframework.security.web.authentication.AuthenticationFilter;
 import ru.otus.hw.models.CustomUser;
 import ru.otus.hw.repositories.UserRepository;
 import ru.otus.hw.security.filter.PrincipalFilter;
-import ru.otus.hw.util.Authority;
 
 import java.util.List;
 
@@ -38,6 +35,8 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        secureEndpoints(http);
+
         return http
                 .formLogin(Customizer.withDefaults())
                 .cors(Customizer.withDefaults())
@@ -45,25 +44,11 @@ public class SecurityConfig {
                 .rememberMe(rm -> rm.key(rmKey)
                         .tokenValiditySeconds(3600)) //1 hour
                 .addFilterAfter(new PrincipalFilter(), AuthorizationFilter.class)
-                .authorizeHttpRequests(authz-> authz
-                        //book
-                        .requestMatchers(HttpMethod.GET, "/edit/{id}").hasRole(Authority.ADMIN.name())
-                        .requestMatchers(HttpMethod.POST, "/{id}").hasRole(Authority.ADMIN.name())
-                        .requestMatchers(HttpMethod.GET, "/create").hasRole(Authority.ADMIN.name())
-                        .requestMatchers(HttpMethod.POST, "/").hasRole(Authority.ADMIN.name())
-                        .requestMatchers(HttpMethod.POST, "/delete/{id}").hasRole(Authority.ADMIN.name())
-
-                        //comment
-                        .requestMatchers(HttpMethod.POST, "/comment/{bookId}").hasRole(Authority.ADMIN.name())
-                        .requestMatchers(HttpMethod.POST, "/comment/delete/{id}").hasRole(Authority.ADMIN.name())
-
-                        .anyRequest().authenticated()
-                )
                 .build();
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder(){
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
@@ -72,15 +57,35 @@ public class SecurityConfig {
         return new UserDetailsService() {
             @Override
             public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-                CustomUser user = userRepository.findByPrincipal(username)
-                        .orElseThrow(()->
+                CustomUser user = userRepository.findByUsername(username)
+                        .orElseThrow(() ->
                                 new EntityNotFoundException("user with username: %s not found".formatted(username)));
 
                 return new User(
-                        user.getPrincipal(),
-                        user.getCredentials(),
+                        user.getUsername(),
+                        user.getPassword(),
                         List.of(new SimpleGrantedAuthority(user.getAuthority())));
             }
         };
+    }
+
+    private void secureEndpoints(HttpSecurity http) throws Exception {
+        http.
+                authorizeHttpRequests(authz -> authz
+                        .requestMatchers(HttpMethod.GET, "/error", "/login").permitAll()
+
+                        //book
+                        .requestMatchers(HttpMethod.GET, "/edit/{id}").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/{id}").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/create").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/delete/{id}").hasRole("ADMIN")
+
+                        //comment
+                        .requestMatchers(HttpMethod.POST, "/comment/{bookId}").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/comment/delete/{id}").hasRole("ADMIN")
+
+                        .anyRequest().authenticated()
+                );
     }
 }

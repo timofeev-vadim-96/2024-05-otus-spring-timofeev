@@ -21,7 +21,7 @@ import lombok.ToString;
 @AllArgsConstructor
 @EqualsAndHashCode(of = {"id"})
 @Builder
-@ToString(of = {"id", "principal"})
+@ToString(of = {"id", "username"})
 @Table(name = "users")
 public class CustomUser {
     @Id
@@ -29,9 +29,9 @@ public class CustomUser {
     private Long id;
 
     @Column(unique = true)
-    private String principal;
+    private String username;
 
-    private String credentials;
+    private String password;
 
     private String authority;
 }

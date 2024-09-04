@@ -18,8 +18,8 @@ public class UsersInit {
     private void initializeUsers() {
         List<UserDto> users = userService.findAll();
         if (users.isEmpty()) {
-            userService.create("admin", "admin", Authority.ADMIN);
-            userService.create("user", "user", Authority.USER);
+            userService.create("admin", "admin", Authority.ROLE_ADMIN);
+            userService.create("user", "user", Authority.ROLE_USER);
         }
     }
 }
