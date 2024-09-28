@@ -10,12 +10,12 @@ import org.springframework.web.filter.GenericFilterBean;
 
 import java.io.IOException;
 
-public class PrincipalFilter extends GenericFilterBean {
+public class AnonymousFilter extends GenericFilterBean {
     @Override
     public void doFilter(ServletRequest servletRequest,
                          ServletResponse servletResponse,
                          FilterChain filterChain) throws IOException, ServletException {
-        if (!SecurityContextHolder.getContext().getAuthentication().getName().equals("anonymousUser")) {
+        if (SecurityContextHolder.getContext().getAuthentication().getAuthorities().contains("ROLE_ANONYMOUS")) {
             User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             this.logger.info("Current user is: %s".formatted(user.getUsername()));
         }

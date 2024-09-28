@@ -7,12 +7,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import ru.otus.hw.controllers.dto.BookViewDto;
-import ru.otus.hw.security.SecurityConfig;
+import ru.otus.hw.controllers.security.TestSecurityConfig;
 import ru.otus.hw.services.AuthorService;
 import ru.otus.hw.services.BookService;
 import ru.otus.hw.services.CommentService;
@@ -34,29 +32,25 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 @WebMvcTest(BookController.class)
-@Import(SecurityConfig.class)
+@Import(TestSecurityConfig.class)
 @DisplayName("контроллер для работы с книгами")
 class BookControllerTest {
     @Autowired
     private MockMvc mvc;
 
     @MockBean
-    BookService bookService;
+    private BookService bookService;
 
     @MockBean
-    CommentService commentService;
+    private CommentService commentService;
 
     @MockBean
-    AuthorService authorService;
+    private AuthorService authorService;
 
     @MockBean
-    GenreService genreService;
-
-    @MockBean
-    UserDetailsService userDetailsService;
+    private GenreService genreService;
 
     @Test
-    @WithMockUser(roles = {"USER"})
     void get() throws Exception {
         BookDto book = new BookDto(
                 1L, "title", new AuthorDto(), List.of(new GenreDto(1L, "Genre_1")));
@@ -72,7 +66,6 @@ class BookControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
     void getEditPage() throws Exception {
         BookDto book = new BookDto(1L, "title", new AuthorDto(), List.of());
         when(bookService.findById(1L)).thenReturn(book);
@@ -92,14 +85,6 @@ class BookControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"USER"})
-    void getEditPageForbidden() throws Exception {
-        mvc.perform(MockMvcRequestBuilders.get("/edit/{id}", 1L))
-                .andExpect(status().isForbidden());
-    }
-
-    @Test
-    @WithMockUser(roles = {"ADMIN"})
     void update() throws Exception {
         BookViewDto book = new BookViewDto(
                 "title", //valid title
@@ -125,14 +110,6 @@ class BookControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"USER"})
-    void updateForbidden() throws Exception {
-        mvc.perform(MockMvcRequestBuilders.post("/{id}", 1L))
-                .andExpect(status().isForbidden());
-    }
-
-    @Test
-    @WithMockUser(roles = {"ADMIN"})
     void updateInvalid() throws Exception {
         BookViewDto book = new BookViewDto(
                 "t", //invalid title
@@ -161,7 +138,6 @@ class BookControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
     void create() throws Exception {
         BookViewDto book = new BookViewDto(
                 "title", //valid title
@@ -186,14 +162,6 @@ class BookControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"USER"})
-    void createForbidden() throws Exception {
-        mvc.perform(MockMvcRequestBuilders.post("/"))
-                .andExpect(status().isForbidden());
-    }
-
-    @Test
-    @WithMockUser(roles = {"ADMIN"})
     void createInvalid() throws Exception {
         BookViewDto book = new BookViewDto(
                 "t", //invalid title
@@ -218,7 +186,6 @@ class BookControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
     void getCreatePage() throws Exception {
         when(authorService.findAll()).thenReturn(List.of());
         when(genreService.findAll()).thenReturn(List.of());
@@ -234,14 +201,6 @@ class BookControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"USER"})
-    void getCreatePageForbidden() throws Exception {
-        mvc.perform(MockMvcRequestBuilders.get("/create"))
-                .andExpect(status().isForbidden());
-    }
-
-    @Test
-    @WithMockUser(roles = {"USER"})
     void getAll() throws Exception {
         when(bookService.findAll()).thenReturn(List.of());
 
@@ -253,7 +212,6 @@ class BookControllerTest {
     }
 
     @Test
-    @WithMockUser(roles = {"ADMIN"})
     void delete() throws Exception {
         long id = 1L;
         doNothing().when(bookService).deleteById(id);
@@ -262,12 +220,5 @@ class BookControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/"));
         verify(bookService, times(1)).deleteById(1);
-    }
-
-    @Test
-    @WithMockUser(roles = {"USER"})
-    void deleteForbidden() throws Exception {
-        mvc.perform(MockMvcRequestBuilders.post("/delete/{id}", 1L))
-                .andExpect(status().isForbidden());
     }
 }

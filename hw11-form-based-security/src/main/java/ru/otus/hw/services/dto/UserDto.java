@@ -5,6 +5,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import ru.otus.hw.models.CustomUser;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -13,11 +16,13 @@ public class UserDto {
 
     private String username;
 
-    private String authority;
+    private Set<AuthorityDto> authorities;
 
-    public UserDto (CustomUser user) {
+    public UserDto(CustomUser user) {
         this.id = user.getId();
         this.username = user.getUsername();
-        this.authority = user.getAuthority();
+        this.authorities = user.getAuthorities().stream()
+                .map(AuthorityDto::new)
+                .collect(Collectors.toSet());
     }
 }
