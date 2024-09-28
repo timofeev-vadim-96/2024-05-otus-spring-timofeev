@@ -7,24 +7,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import ru.otus.hw.controllers.security.TestSecurityConfig;
+import ru.otus.hw.security.SecurityConfig;
 import ru.otus.hw.services.GenreService;
-import ru.otus.hw.services.dto.GenreDto;
 
-import java.util.List;
-
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(value = GenreController.class)
-@Import(TestSecurityConfig.class)
+@Import(SecurityConfig.class)
 @DisplayName("Контроллер для работы с жанрами")
-class GenreControllerTest {
+public class GenreControllerSecurityTest {
     @Autowired
     private MockMvc mvc;
 
@@ -34,15 +28,12 @@ class GenreControllerTest {
     @MockBean
     private GenreService genreService;
 
+    @MockBean
+    private UserDetailsService userDetailsService;
+
     @Test
     void getAll() throws Exception {
-        List<GenreDto> expected = List.of(new GenreDto(1L, "Genre_1"));
-
-        when(genreService.findAll()).thenReturn(expected);
-
         mvc.perform(MockMvcRequestBuilders.get("/api/v1/genre"))
-                .andExpect(status().isOk())
-                .andExpect(content().json(mapper.writeValueAsString(expected)));
-        verify(genreService, times(1)).findAll();
+                .andExpect(status().isFound());
     }
 }

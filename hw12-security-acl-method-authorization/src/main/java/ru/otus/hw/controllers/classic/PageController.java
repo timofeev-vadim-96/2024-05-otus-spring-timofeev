@@ -28,4 +28,9 @@ public class PageController {
         model.addAttribute("id", id);
         return "book";
     }
+
+    @GetMapping(value = "/error")
+    public String errorPage() {
+        return "error";
+    }
 }

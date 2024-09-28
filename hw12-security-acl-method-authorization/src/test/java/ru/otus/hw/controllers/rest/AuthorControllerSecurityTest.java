@@ -7,24 +7,18 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import ru.otus.hw.controllers.security.TestSecurityConfig;
+import ru.otus.hw.security.SecurityConfig;
 import ru.otus.hw.services.AuthorService;
-import ru.otus.hw.services.dto.AuthorDto;
 
-import java.util.List;
-
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(value = AuthorController.class)
-@Import(TestSecurityConfig.class)
+@Import(SecurityConfig.class)
 @DisplayName("Контроллер для работы с авторами")
-class AuthorControllerTest {
+public class AuthorControllerSecurityTest {
     @Autowired
     private MockMvc mvc;
 
@@ -34,14 +28,12 @@ class AuthorControllerTest {
     @MockBean
     private AuthorService authorService;
 
+    @MockBean
+    private UserDetailsService userDetailsService;
+
     @Test
     void getAll() throws Exception {
-        List<AuthorDto> expected = List.of(new AuthorDto(1L, "Author_1"));
-        when(authorService.findAll()).thenReturn(expected);
-
         mvc.perform(MockMvcRequestBuilders.get("/api/v1/author"))
-                .andExpect(status().isOk())
-                .andExpect(content().json(mapper.writeValueAsString(expected)));
-        verify(authorService, times(1)).findAll();
+                .andExpect(status().isFound());
     }
 }

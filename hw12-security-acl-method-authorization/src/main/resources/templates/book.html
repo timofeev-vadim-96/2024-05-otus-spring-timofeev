@@ -92,6 +92,7 @@
                     window.location.href = '/';
                 } else {
                     console.error('Error deleting book:', response.status);
+                    window.location.href = '/error';
                 }
             })
             .catch(error => {
@@ -191,6 +192,7 @@
                     console.log('Comment deleted successfully!');
                 } else {
                     console.error('Error deleting comment:', response.status);
+                    window.location.href = '/error';
                 }
             })
             .catch(error => {
