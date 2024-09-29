@@ -1,0 +1,13 @@
+package ru.otus.hw.repositories;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+import ru.otus.hw.models.relation.Book;
+import ru.otus.hw.models.relation.Comment;
+
+import java.util.List;
+
+@Repository
+public interface CommentRepository extends JpaRepository<Comment, Long> {
+    List<Comment> findAllByBook(Book bookId);
+}

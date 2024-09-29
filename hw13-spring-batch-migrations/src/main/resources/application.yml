@@ -1,0 +1,40 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+  data:
+    mongodb:
+      host: localhost
+      port: 27017
+      database: otus_mongo
+      authentication-database: admin #для авторизации пользователя
+      username: admin
+      password: password123
+  batch:
+    job:
+      enabled: false #если true - все job-ы выполнятся при запуске приложения
+
+  shell:
+    interactive:
+      enabled: true
+    noninteractive:
+      enabled: false
+    command:
+      version:
+        enabled: false
+
+# нужно для работы встроенной бд
+de:
+  flapdoodle:
+    mongodb:
+      embedded:
+        version: 4.0.2
+
+mongock:
+#  runner-type: "ApplicationRunner" # default
+  runner-type: "InitializingBean"
+  change-logs-scan-package:
+    - ru.otus.hw.mongock.changelogs
+  mongo-db:
+    write-concern:
+      journal: false
+    read-concern: local
