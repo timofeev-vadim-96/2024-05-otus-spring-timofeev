@@ -31,8 +31,8 @@ public class BookServiceImpl implements BookService {
 
     @Override
     @Transactional(readOnly = true)
-//    @PreAuthorize("canRead(#id, T(ru.otus.hw.services.dto.BookDto))")
-    @PostAuthorize("hasPermission(returnObject, 'READ')")
+    @PreAuthorize("canRead(#id, T(ru.otus.hw.services.dto.BookDto))")
+//    @PostAuthorize("hasPermission(returnObject, 'READ')")
     public BookDto findById(long id) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Book with id %s not found".formatted(id)));
