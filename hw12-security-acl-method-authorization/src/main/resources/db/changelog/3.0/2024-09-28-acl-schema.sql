@@ -4,7 +4,7 @@
 CREATE TABLE IF NOT EXISTS acl_sid
 (
     id        BIGSERIAL PRIMARY KEY,
-    principal BOOLEAN      NOT NULL,
+    principal INTEGER      NOT NULL,
     sid       VARCHAR(100) NOT NULL,
     UNIQUE (sid, principal)
 );
@@ -22,9 +22,9 @@ CREATE TABLE IF NOT EXISTS acl_entry
     ace_order           INT NOT NULL,
     sid                 BIGINT NOT NULL,
     mask                INT NOT NULL,
-    granting            BOOLEAN NOT NULL,
-    audit_success       BOOLEAN NOT NULL,
-    audit_failure       BOOLEAN NOT NULL,
+    granting            INTEGER NOT NULL,
+    audit_success       INTEGER NOT NULL,
+    audit_failure       INTEGER NOT NULL,
     UNIQUE (acl_object_identity,ace_order)
 );
 
@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS acl_object_identity
     object_id_identity BIGINT NOT NULL,
     parent_object      BIGINT DEFAULT NULL,
     owner_sid          BIGINT DEFAULT NULL,
-    entries_inheriting BOOLEAN NOT NULL,
+    entries_inheriting INTEGER NOT NULL,
     UNIQUE (object_id_class,object_id_identity)
 );
 

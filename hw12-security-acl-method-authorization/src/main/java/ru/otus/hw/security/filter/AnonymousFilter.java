@@ -15,7 +15,7 @@ public class AnonymousFilter extends GenericFilterBean {
     public void doFilter(ServletRequest servletRequest,
                          ServletResponse servletResponse,
                          FilterChain filterChain) throws IOException, ServletException {
-        if (SecurityContextHolder.getContext().getAuthentication().getAuthorities().contains("ROLE_ANONYMOUS")) {
+        if (!SecurityContextHolder.getContext().getAuthentication().getAuthorities().contains("ROLE_ANONYMOUS")) {
             User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
             this.logger.info("Current user is: %s".formatted(user.getUsername()));
         }

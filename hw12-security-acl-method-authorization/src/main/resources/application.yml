@@ -11,6 +11,7 @@ spring:
       ddl-auto: none
     show-sql: true
     open-in-view: false
+
 config:
   rmKey: ai3odmwvid1o #remember me key
 users:

@@ -11,6 +11,7 @@ public class AclMethodSecurityExpressionHandler extends DefaultMethodSecurityExp
     protected MethodSecurityExpressionOperations createSecurityExpressionRoot(Authentication authentication,
                                                                               MethodInvocation invocation) {
 
+        //кастомый класс с кастомными методами для проверки permission
         AclMethodSecurityExpressionRoot root = new AclMethodSecurityExpressionRoot(authentication);
         root.setThis(invocation.getThis());
         root.setPermissionEvaluator(this.getPermissionEvaluator());
