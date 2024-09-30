@@ -1,4 +1,4 @@
-package ru.otus.hw.mappers;
+package ru.otus.hw.repositories;
 
 import org.springframework.stereotype.Component;
 import ru.otus.hw.models.mongo.MongoAuthor;
@@ -9,11 +9,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 public class ModelsCash {
-    private static final ConcurrentHashMap<Long, MongoAuthor> authors = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Long, MongoAuthor> authors = new ConcurrentHashMap<>();
 
-    private static final ConcurrentHashMap<Long, MongoGenre> genres = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Long, MongoGenre> genres = new ConcurrentHashMap<>();
 
-    private static final ConcurrentHashMap<Long, MongoBook> books = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Long, MongoBook> books = new ConcurrentHashMap<>();
 
     public void putAuthor(Long id, MongoAuthor author) {
         authors.put(id, author);

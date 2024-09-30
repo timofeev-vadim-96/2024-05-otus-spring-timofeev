@@ -10,6 +10,7 @@ import ru.otus.hw.models.relation.Author;
 import ru.otus.hw.models.relation.Book;
 import ru.otus.hw.models.relation.Comment;
 import ru.otus.hw.models.relation.Genre;
+import ru.otus.hw.repositories.ModelsCash;
 
 import java.util.HashSet;
 import java.util.Set;

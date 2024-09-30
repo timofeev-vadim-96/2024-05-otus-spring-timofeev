@@ -9,6 +9,9 @@ spring:
       authentication-database: admin #для авторизации пользователя
       username: admin
       password: password123
+    jpa:
+      repositories:
+        enabled: false
   batch:
     job:
       enabled: false #если true - все job-ы выполнятся при запуске приложения
@@ -28,13 +31,3 @@ de:
     mongodb:
       embedded:
         version: 4.0.2
-
-mongock:
-#  runner-type: "ApplicationRunner" # default
-  runner-type: "InitializingBean"
-  change-logs-scan-package:
-    - ru.otus.hw.mongock.changelogs
-  mongo-db:
-    write-concern:
-      journal: false
-    read-concern: local
