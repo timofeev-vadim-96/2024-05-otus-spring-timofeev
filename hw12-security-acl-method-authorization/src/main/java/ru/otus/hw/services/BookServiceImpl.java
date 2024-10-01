@@ -17,6 +17,7 @@ import ru.otus.hw.services.dto.BookDto;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.springframework.util.CollectionUtils.isEmpty;
 
@@ -47,7 +48,8 @@ public class BookServiceImpl implements BookService {
         List<Book> books = bookRepository.findAll();
         books.sort(Comparator.comparingLong(Book::getId));
 
-        return books.stream().map(BookDto::new).toList();
+//        return books.stream().map(BookDto::new).toList();
+        return books.stream().map(BookDto::new).collect(Collectors.toList());
     }
 
     @Override
