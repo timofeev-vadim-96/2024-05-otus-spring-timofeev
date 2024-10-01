@@ -3,10 +3,13 @@ package ru.otus.hw.security.acl;
 import org.springframework.security.access.expression.SecurityExpressionRoot;
 import org.springframework.security.core.Authentication;
 
-public class AclMethodSecurityExpressionRoot extends SecurityExpressionRoot implements AclMethodSecurityExpressionOperations {
+public class AclMethodSecurityExpressionRoot extends SecurityExpressionRoot
+        implements AclMethodSecurityExpressionOperations {
 
     private Object filterObject;
+
     private Object returnObject;
+
     private Object target;
 
     public AclMethodSecurityExpressionRoot(Authentication authentication) {
@@ -52,7 +55,9 @@ public class AclMethodSecurityExpressionRoot extends SecurityExpressionRoot impl
     public boolean canRead(Object targetId, Class<?> targetClass) {
 
         //если пользователь с правами administer permission, то РАЗРЕШИТЬ чтение
-        if(isAdministrator(targetId, targetClass)) return true;
+        if (isAdministrator(targetId, targetClass)) {
+            return true;
+        }
 
         return isGranted(targetId, targetClass, read);
     }

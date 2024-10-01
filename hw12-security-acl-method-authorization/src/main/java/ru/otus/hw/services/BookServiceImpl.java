@@ -1,7 +1,6 @@
 package ru.otus.hw.services;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PostAuthorize;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
@@ -48,7 +47,6 @@ public class BookServiceImpl implements BookService {
         List<Book> books = bookRepository.findAll();
         books.sort(Comparator.comparingLong(Book::getId));
 
-//        return books.stream().map(BookDto::new).toList();
         return books.stream().map(BookDto::new).collect(Collectors.toList());
     }
 
