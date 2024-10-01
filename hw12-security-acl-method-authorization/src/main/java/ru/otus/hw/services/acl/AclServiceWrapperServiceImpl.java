@@ -27,11 +27,11 @@ public class AclServiceWrapperServiceImpl implements AclServiceWrapperService {
         final Sid owner = new PrincipalSid(authentication);
         ObjectIdentity oid = new ObjectIdentityImpl(object);
 
-        final Sid admin = new GrantedAuthoritySid("ROLE_EDITOR");
+        final Sid admin = new GrantedAuthoritySid("ROLE_ADMIN");
 
         MutableAcl acl = mutableAclService.createAcl(oid);
         acl.insertAce(acl.getEntries().size(), permission, owner, true);
-        //acl.insertAce(acl.getEntries().size(), permission, admin, true);
+        acl.insertAce(acl.getEntries().size(), permission, admin, true);
         mutableAclService.updateAcl(acl);
     }
 }

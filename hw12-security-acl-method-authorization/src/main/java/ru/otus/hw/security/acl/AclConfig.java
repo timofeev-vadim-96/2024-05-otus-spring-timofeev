@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.concurrent.ConcurrentMapCache;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.acls.AclPermissionCacheOptimizer;
 import org.springframework.security.acls.AclPermissionEvaluator;
@@ -31,7 +30,12 @@ public class AclConfig {
      */
     @Bean
     public MethodSecurityExpressionHandler defaultMethodSecurityExpressionHandler() {
-        return new AclMethodSecurityExpressionHandler();
+        AclMethodSecurityExpressionHandler expressionHandler = new AclMethodSecurityExpressionHandler();
+        AclPermissionEvaluator permissionEvaluator = new AclPermissionEvaluator(aclService());
+        expressionHandler.setPermissionEvaluator(permissionEvaluator);
+        expressionHandler.setPermissionCacheOptimizer(new AclPermissionCacheOptimizer(aclService()));
+        return expressionHandler;
+        //дефолтная реализация без кастомных методов проверки прав доступа
 //        DefaultMethodSecurityExpressionHandler expressionHandler = new DefaultMethodSecurityExpressionHandler();
 //        AclPermissionEvaluator permissionEvaluator = new AclPermissionEvaluator(aclService());
 //        expressionHandler.setPermissionEvaluator(permissionEvaluator);
