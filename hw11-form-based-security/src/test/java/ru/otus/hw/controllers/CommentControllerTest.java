@@ -1,16 +1,17 @@
 package ru.otus.hw.controllers;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
+import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import ru.otus.hw.controllers.security.TestSecurityConfig;
 import ru.otus.hw.services.BookService;
 import ru.otus.hw.services.CommentService;
 import ru.otus.hw.services.dto.AuthorDto;
@@ -22,14 +23,15 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
-@WebMvcTest(CommentController.class)
-@Import(TestSecurityConfig.class)
+@WebMvcTest(controllers = {CommentController.class},
+        excludeAutoConfiguration = SecurityAutoConfiguration.class)
 @DisplayName("контроллер для работы с комментариями")
 class CommentControllerTest {
     @Autowired
@@ -51,7 +53,6 @@ class CommentControllerTest {
 
         Mockito.when(bookService.findById(bookId)).thenReturn(book);
         Mockito.when(commentService.findAllByBookId(bookId)).thenReturn(comments);
-
 
         mvc.perform(MockMvcRequestBuilders.post("/comment/{bookId}", bookId)
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
