@@ -21,5 +21,6 @@
         <module>hw08-nosql-mongodb</module>
         <module>hw09-mvc-thymeleaf</module>
         <module>hw10-mvc-javaScript-ajax</module>
+        <module>hw14-spring-integrations</module>
     </modules>
 </project>
