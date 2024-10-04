@@ -64,12 +64,11 @@ public class CommentControllerSecurityTest {
                                     String userName, String[] roles,
                                     int status, boolean checkLoginRedirection) throws Exception {
 
-        MockHttpServletRequestBuilder request = method2RequestBuilder(method, url);
+        MockHttpServletRequestBuilder request = method2RequestBuilder(method, url, params);
 
         if (nonNull(userName)) {
             request = request.with(user(userName).roles(roles));
         }
-        populateRequestWithParams(request, params);
 
         ResultActions resultActions = mvc.perform(request)
                 .andExpect(status().is(status));
@@ -79,22 +78,22 @@ public class CommentControllerSecurityTest {
         }
     }
 
-    private void populateRequestWithParams(MockHttpServletRequestBuilder request, Map<String, String> params) {
+    private MultiValueMap<String, String> convertToMultiValueMap(Map<String, String> params) {
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>(params.size());
         for (String key : params.keySet()) {
             map.add(key, params.get(key));
         }
-        request.params(map);
+        return map;
     }
 
-    private MockHttpServletRequestBuilder method2RequestBuilder(String method, String url) {
+    private MockHttpServletRequestBuilder method2RequestBuilder(String method, String url, Map<String, String> params) {
         Map<String, Function<String, MockHttpServletRequestBuilder>> methodMap =
                 Map.of("get", MockMvcRequestBuilders::get,
                         "post", MockMvcRequestBuilders::post,
                         "put", MockMvcRequestBuilders::put,
                         "delete", MockMvcRequestBuilders::delete,
                         "patch", MockMvcRequestBuilders::patch);
-        return methodMap.get(method).apply(url);
+        return methodMap.get(method).apply(url).params(convertToMultiValueMap(params));
     }
 
 
