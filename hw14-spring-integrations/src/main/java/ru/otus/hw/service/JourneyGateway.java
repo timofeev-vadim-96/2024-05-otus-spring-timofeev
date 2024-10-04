@@ -9,8 +9,8 @@ import java.util.Collection;
 @MessagingGateway
 public interface JourneyGateway {
     @Gateway(requestChannel = "inputChannel")
-    Collection<Adventurer> startJourney(Collection<Adventurer> adventurers);
+    void startJourney(Collection<Adventurer> adventurers);
 
     @Gateway(requestChannel = "survivalsChannel")
-    Collection<Adventurer> finish(Collection<Adventurer> adventurers);
+    Adventurer finish(Adventurer adventurer);
 }

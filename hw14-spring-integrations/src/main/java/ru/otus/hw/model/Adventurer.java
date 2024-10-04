@@ -7,6 +7,8 @@ import ru.otus.hw.util.Race;
 
 @Getter
 public class Adventurer {
+    private String fullName;
+
     private Profession profession;
 
     private Race race;
@@ -17,7 +19,8 @@ public class Adventurer {
     @Setter
     private int level = 1;
 
-    public Adventurer(Profession profession, Race race) {
+    public Adventurer(String fullName, Profession profession, Race race) {
+        this.fullName = fullName;
         this.profession = profession;
         this.race = race;
     }

@@ -11,9 +11,6 @@ import ru.otus.hw.model.Adventurer;
 import ru.otus.hw.service.JourneyService;
 import ru.otus.hw.util.Race;
 
-import java.util.Collection;
-import java.util.Map;
-
 @Configuration
 @EnableConfigurationProperties(AppParams.class)
 public class IntegrationConfig {
@@ -23,21 +20,18 @@ public class IntegrationConfig {
     }
 
     @Bean("survivalsChannel")
-    public MessageChannel survivalsChannel(){
+    public MessageChannel survivalsChannel() {
         return MessageChannels.queue(10).getObject();
     }
 
     @Bean("cemetery")
-    public MessageChannel cemeteryChannel(){
+    public MessageChannel cemeteryChannel() {
         return MessageChannels.queue(10).getObject();
     }
 
     @Bean("outputChannel")
-    public MessageChannel pubSubCh() {
-        return MessageChannels
-                .publishSubscribe()
-                .minSubscribers(0)
-                .getObject();
+    public MessageChannel outputChannel() {
+        return MessageChannels.queue(10).getObject();
     }
 
     @Bean
@@ -48,8 +42,7 @@ public class IntegrationConfig {
                 .<Adventurer, Adventurer>transform(a -> {
                     a.setLevel(a.getLevel() + 1);
                     return a;
-                }) //увеличение уровня выживших
-                .aggregate()
+                })
                 .<Adventurer, Boolean>route(Adventurer::isAlive, m -> m
                         .channelMapping(true, "survivalsChannel")
                         .channelMapping(false, "cemetery"))
@@ -60,9 +53,20 @@ public class IntegrationConfig {
     public IntegrationFlow finish() {
         return IntegrationFlow.from("survivalsChannel")
                 .<Adventurer>filter(a -> !a.getRace().equals(Race.Undead))
-                .enrichHeaders(Map.of("achievement", "veteran"))
-                .<Collection<Adventurer>, Integer>transform(Collection::size)
-                .channel("outputChannel")
+                .handle(message -> {
+                    Adventurer adventurer = (Adventurer) message.getPayload();
+                    System.out.printf("%nCongratulation for %s! You are a survival!%n", adventurer.getFullName());
+                })
+                .get();
+    }
+
+    @Bean
+    public IntegrationFlow funeral() {
+        return IntegrationFlow.from("cemetery")
+                .handle(message -> {
+                    Adventurer adventurer = (Adventurer) message.getPayload();
+                    System.out.printf("%nR.I.P, %s...%n", adventurer.getFullName());
+                })
                 .get();
     }
 }

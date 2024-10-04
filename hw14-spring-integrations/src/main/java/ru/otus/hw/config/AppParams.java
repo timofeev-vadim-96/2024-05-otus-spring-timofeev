@@ -7,7 +7,7 @@ import org.springframework.boot.context.properties.bind.ConstructorBinding;
 @ConfigurationProperties(prefix = "application")
 @Getter
 public class AppParams {
-    private int teamSize;
+    private final int teamSize;
 
     @ConstructorBinding
     public AppParams(int teamSize) {
