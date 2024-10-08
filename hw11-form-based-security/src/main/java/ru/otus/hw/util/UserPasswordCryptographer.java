@@ -10,11 +10,16 @@ import ru.otus.hw.models.CustomUser;
 import ru.otus.hw.repositories.UserRepository;
 
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class UserPasswordCryptographer {
+    private static final Pattern BCRYPT_PATTERN =
+            Pattern.compile("\\A\\$2(a|y|b)?\\$(\\d\\d)\\$[./0-9A-Za-z]{53}");
+
     private final UserRepository userRepository;
 
     private final PasswordEncoder passwordEncoder;
@@ -38,8 +43,9 @@ public class UserPasswordCryptographer {
     }
 
     private boolean isAlreadyEncoded(String password) {
-        String encoded = passwordEncoder.encode(password);
-        boolean matches = password.equals(encoded);
+        Matcher matcher = BCRYPT_PATTERN.matcher(password);
+
+        boolean matches = matcher.matches();
         log.info("passwords already encoded? {}", matches);
         return matches;
     }
