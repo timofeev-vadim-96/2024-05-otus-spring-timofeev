@@ -1,4 +1,4 @@
-package ru.otus.hw.services.security;
+package ru.otus.hw.services;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -47,6 +47,13 @@ public class BookServiceAclSecurityTest {
     @WithMockUser(username = "user")
     void findByIdByUserDenying() {
         assertThrows(AccessDeniedException.class, () -> bookService.findById(3));
+    }
+
+    @ParameterizedTest
+    @ValueSource(longs = {1, 2, 3})
+    @WithMockUser(username = "unknown")
+    void findByIdByUnknown(long id) {
+        assertThrows(AccessDeniedException.class, () -> bookService.findById(id));
     }
 
     @Test

@@ -4,12 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import ru.otus.hw.controllers.security.TestSecurityConfig;
 import ru.otus.hw.services.AuthorService;
 import ru.otus.hw.services.dto.AuthorDto;
 
@@ -21,8 +20,8 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(value = AuthorController.class)
-@Import(TestSecurityConfig.class)
+@WebMvcTest(controllers = AuthorController.class,
+        excludeAutoConfiguration = SecurityAutoConfiguration.class)
 @DisplayName("Контроллер для работы с авторами")
 class AuthorControllerTest {
     @Autowired

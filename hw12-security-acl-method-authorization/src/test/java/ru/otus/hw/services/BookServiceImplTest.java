@@ -7,17 +7,18 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import ru.otus.hw.exceptions.EntityNotFoundException;
+import ru.otus.hw.services.acl.AclWrapperService;
 import ru.otus.hw.services.dto.AuthorDto;
 import ru.otus.hw.services.dto.BookDto;
 import ru.otus.hw.services.dto.GenreDto;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.LongStream;
@@ -27,7 +28,6 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DisplayName("Сервис для работы с книгами")
 @DataJpaTest
@@ -38,6 +38,9 @@ class BookServiceImplTest {
 
     @Autowired
     private BookServiceImpl bookService;
+
+    @MockBean
+    private AclWrapperService acl;
 
     private List<BookDto> dbBooks;
 
@@ -134,11 +137,11 @@ class BookServiceImplTest {
     @Test
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     void deleteById() {
-        assertDoesNotThrow(()->bookService.findById(2L));
+        assertDoesNotThrow(() -> bookService.findById(2L));
 
         bookService.deleteById(2L);
 
-        assertThrows(EntityNotFoundException.class, ()->bookService.findById(2L));
+        assertThrows(EntityNotFoundException.class, () -> bookService.findById(2L));
     }
 
     private static List<AuthorDto> getDbAuthors() {

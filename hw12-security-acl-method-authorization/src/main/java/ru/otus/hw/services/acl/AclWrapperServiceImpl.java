@@ -13,11 +13,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 @Service
-public class AclServiceWrapperServiceImpl implements AclServiceWrapperService {
+public class AclWrapperServiceImpl implements AclWrapperService {
 
     private final MutableAclService mutableAclService;
 
-    public AclServiceWrapperServiceImpl(MutableAclService mutableAclService) {
+    public AclWrapperServiceImpl(MutableAclService mutableAclService) {
         this.mutableAclService = mutableAclService;
     }
 

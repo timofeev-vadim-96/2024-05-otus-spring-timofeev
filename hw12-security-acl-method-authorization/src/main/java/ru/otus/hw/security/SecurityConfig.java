@@ -31,6 +31,7 @@ public class SecurityConfig {
 
         return http
                 .formLogin(Customizer.withDefaults())
+//                .httpBasic(Customizer.withDefaults())
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable) //возможность работать с проксированными HTTP-запросам
                 .rememberMe(rm -> rm.key(rmKey)
@@ -53,7 +54,6 @@ public class SecurityConfig {
         http.
                 authorizeHttpRequests(authz -> authz
                         //pages
-                        .requestMatchers(HttpMethod.GET, "/error", "/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/create").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/edit/{id}").hasRole("ADMIN")
 

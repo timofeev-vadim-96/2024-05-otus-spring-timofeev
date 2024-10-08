@@ -1,8 +1,10 @@
 package ru.otus.hw.services;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.prepost.PostFilter;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.otus.hw.exceptions.EntityNotFoundException;
@@ -11,6 +13,7 @@ import ru.otus.hw.models.Genre;
 import ru.otus.hw.repositories.AuthorRepository;
 import ru.otus.hw.repositories.BookRepository;
 import ru.otus.hw.repositories.GenreRepository;
+import ru.otus.hw.services.acl.AclWrapperService;
 import ru.otus.hw.services.dto.BookDto;
 
 import java.util.Comparator;
@@ -22,12 +25,15 @@ import static org.springframework.util.CollectionUtils.isEmpty;
 
 @RequiredArgsConstructor
 @Service
+@Slf4j
 public class BookServiceImpl implements BookService {
     private final AuthorRepository authorRepository;
 
     private final GenreRepository genreRepository;
 
     private final BookRepository bookRepository;
+
+    private final AclWrapperService acl;
 
     @Override
     @Transactional(readOnly = true)
@@ -46,7 +52,6 @@ public class BookServiceImpl implements BookService {
     public List<BookDto> findAll() {
         List<Book> books = bookRepository.findAll();
         books.sort(Comparator.comparingLong(Book::getId));
-
         return books.stream().map(BookDto::new).collect(Collectors.toList());
     }
 
@@ -55,7 +60,11 @@ public class BookServiceImpl implements BookService {
     public BookDto create(String title, long authorId, Set<Long> genresIds) {
         Book created = save(null, title, authorId, genresIds);
 
-        return new BookDto(created);
+        BookDto dto = new BookDto(created);
+
+        acl.createPermission(dto, BasePermission.READ);
+
+        return dto;
     }
 
     @Override
