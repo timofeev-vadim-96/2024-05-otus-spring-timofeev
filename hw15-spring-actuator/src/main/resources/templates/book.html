@@ -57,7 +57,7 @@
 <div>
     <label for="comment-input">New comment:</label>
     <input type="text" id="comment-input" name="title" required>
-    <div class="errors" id="titleErrors">Length must be larger or equals 10</div>
+    <div class="errors" id="comment-input-errors"></div>
 </div>
 <button id="write-comment-button" type="button">Write</button>
 
@@ -92,6 +92,7 @@
                     window.location.href = '/';
                 } else {
                     console.error('Error deleting book:', response.status);
+                    window.location.href = '/error';
                 }
             })
             .catch(error => {
@@ -111,6 +112,14 @@
     const writeCommentButton = document.getElementById('write-comment-button');
     writeCommentButton.addEventListener('click', () => {
         const comment = document.getElementById('comment-input').value;
+        const commentTextError = document.getElementById('comment-input-errors');
+
+        if (comment.length >= 10) {
+            commentTextError.style.display = "none" // Скрываем сообщение об ошибке
+        } else {
+            commentTextError.textContent = "Length must be larger or equals 10";
+            commentTextError.style.display = "block"; // Показываем сообщение об ошибке
+        }
 
         // Отправка данных на сервер
         fetch('/api/v1/comment', {
@@ -191,6 +200,7 @@
                     console.log('Comment deleted successfully!');
                 } else {
                     console.error('Error deleting comment:', response.status);
+                    window.location.href = '/error';
                 }
             })
             .catch(error => {

@@ -18,3 +18,9 @@ management:
         include: "*"
   endpoint:
     health:
+      show-details: always
+logging:
+  file:
+    name: log.log
+  level:
+    root: info
