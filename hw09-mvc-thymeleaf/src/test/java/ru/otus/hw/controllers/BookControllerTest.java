@@ -1,5 +1,6 @@
 package ru.otus.hw.controllers;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,13 +48,18 @@ class BookControllerTest {
     @MockBean
     GenreService genreService;
 
-    @Test
-    void get() throws Exception {
-        BookDto book = new BookDto(
+    BookDto book;
+
+    @BeforeEach
+    void setUp() {
+        book = new BookDto(
                 1L, "title", new AuthorDto(), List.of(new GenreDto(1L, "Genre_1")));
         when(bookService.findById(1L)).thenReturn(book);
+    }
 
-        mvc.perform(MockMvcRequestBuilders.get("/{id}", book.getId()))
+    @Test
+    void getBookPage() throws Exception {
+        mvc.perform(MockMvcRequestBuilders.get("/book/book_page/{id}", book.getId()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("book"))
                 .andExpect(model().attributeExists("book"))
@@ -69,7 +75,7 @@ class BookControllerTest {
         when(authorService.findAll()).thenReturn(List.of());
         when(genreService.findAll()).thenReturn(List.of());
 
-        mvc.perform(MockMvcRequestBuilders.get("/edit/{id}", 1L))
+        mvc.perform(MockMvcRequestBuilders.get("/book/edit_page/{id}", 1L))
                 .andExpect(status().isOk())
                 .andExpect(view().name("edit"))
                 .andExpect(model().attributeExists("book"))
@@ -88,7 +94,7 @@ class BookControllerTest {
                 1L,
                 Set.of(1L));
 
-        mvc.perform(MockMvcRequestBuilders.post("/{id}", 1L)
+        mvc.perform(MockMvcRequestBuilders.post("/book/edit/{id}", 1L)
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("title", book.getTitle())
                         .param("authorId", String.valueOf(book.getAuthorId()))
@@ -112,26 +118,22 @@ class BookControllerTest {
                 "t", //invalid title
                 1L,
                 Set.of(1L));
-        when(bookService.findById(1L)).thenReturn(new BookDto(1L, "title", new AuthorDto(), List.of()));
-        when(authorService.findAll()).thenReturn(List.of());
-        when(genreService.findAll()).thenReturn(List.of());
 
-        mvc.perform(MockMvcRequestBuilders.post("/{id}", 1L)
+        mvc.perform(MockMvcRequestBuilders.post("/book/edit/{id}", 1L)
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("title", book.getTitle())
                         .param("authorId", String.valueOf(book.getAuthorId()))
                         .param("genres", book.getGenres()
                                 .toString().replace("[", "")
                                 .replace("]", "")))
+                .andExpect(status().isOk())
                 .andExpect(view().name("edit"))
                 .andExpect(model().attributeExists("book"))
-                .andExpect(model().attributeExists("dto"))
                 .andExpect(model().attributeExists("authors"))
                 .andExpect(model().attributeExists("genres"));
-
-        verify(bookService, times(1)).findById(1L);
         verify(authorService, times(1)).findAll();
         verify(genreService, times(1)).findAll();
+        verify(bookService, times(1)).findById(1L);
     }
 
     @Test
@@ -141,7 +143,7 @@ class BookControllerTest {
                 1L,
                 Set.of(1L));
 
-        mvc.perform(MockMvcRequestBuilders.post("/")
+        mvc.perform(MockMvcRequestBuilders.post("/book/create")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("title", book.getTitle())
                         .param("authorId", String.valueOf(book.getAuthorId()))
@@ -164,20 +166,18 @@ class BookControllerTest {
                 "t", //invalid title
                 1L,
                 Set.of(1L));
-        when(authorService.findAll()).thenReturn(List.of());
-        when(genreService.findAll()).thenReturn(List.of());
 
-        mvc.perform(MockMvcRequestBuilders.post("/")
+        mvc.perform(MockMvcRequestBuilders.post("/book/create")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                         .param("title", book.getTitle())
                         .param("authorId", String.valueOf(book.getAuthorId()))
                         .param("genres", book.getGenres()
                                 .toString().replace("[", "")
                                 .replace("]", "")))
+                .andExpect(status().isOk())
                 .andExpect(view().name("create"))
                 .andExpect(model().attributeExists("authors"))
                 .andExpect(model().attributeExists("genres"));
-
         verify(authorService, times(1)).findAll();
         verify(genreService, times(1)).findAll();
     }
@@ -187,7 +187,7 @@ class BookControllerTest {
         when(authorService.findAll()).thenReturn(List.of());
         when(genreService.findAll()).thenReturn(List.of());
 
-        mvc.perform(MockMvcRequestBuilders.get("/create"))
+        mvc.perform(MockMvcRequestBuilders.get("/book/create_page"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("create"))
                 .andExpect(model().attributeExists("book"))
@@ -213,7 +213,7 @@ class BookControllerTest {
         long id = 1L;
         doNothing().when(bookService).deleteById(id);
 
-        mvc.perform(MockMvcRequestBuilders.post("/delete/{id}", id))
+        mvc.perform(MockMvcRequestBuilders.post("/book/delete/{id}", id))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/"));
         verify(bookService, times(1)).deleteById(1);

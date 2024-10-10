@@ -34,7 +34,7 @@
 <body>
 <!-- Book creation -->
 <!--описание действий при нажатии кнопки с type=submit-->
-<form id="create-form" action="books.html" th:method="post" th:action="@{/}" th:object="${book}">
+<form id="create-form" action="books.html" th:method="post" th:action="@{/book/create}" th:object="${book}">
     <h3>Create a book:</h3>
 
     <div class="row">

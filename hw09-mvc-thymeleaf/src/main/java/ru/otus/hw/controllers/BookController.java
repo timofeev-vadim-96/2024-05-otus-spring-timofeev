@@ -35,16 +35,11 @@ public class BookController {
 
     private final GenreService genreService;
 
-    @GetMapping(value = "/{id}")
-    public String get(@PathVariable("id") long id, Model model) {
+    @GetMapping(value = "/book/book_page/{id}")
+    public String getBookPage(@PathVariable("id") long id, Model model) {
         BookDto book = bookService.findById(id);
         model.addAttribute("book", book);
-        model.addAttribute("genres", book.getGenres().stream()
-                .map(GenreDto::getName)
-                .toList().toString()
-                .replace('[', ' ')
-                .replace(']', ' ')
-                .trim());
+        model.addAttribute("genres", book.getGenres());
         List<CommentDto> comments = commentService.findAllByBookId(id);
         model.addAttribute("comments", comments);
         model.addAttribute("comment", new CommentViewDto());
@@ -52,7 +47,7 @@ public class BookController {
         return "book";
     }
 
-    @GetMapping(value = "/edit/{id}")
+    @GetMapping(value = "/book/edit_page/{id}")
     public String getEditPage(@PathVariable("id") long id, Model model) {
         BookDto book = bookService.findById(id);
         List<AuthorDto> authors = authorService.findAll();
@@ -60,27 +55,21 @@ public class BookController {
 
         model.addAttribute("authors", authors);
         model.addAttribute("book", book);
-        model.addAttribute("dto", new BookViewDto());
         model.addAttribute("genres", genres);
+        model.addAttribute("dto", new BookViewDto());
 
         return "edit";
     }
 
-    @PostMapping(value = "/{id}")
+    @PostMapping(value = "/book/edit/{id}")
     public String update(@PathVariable("id") long id,
                          @Valid @ModelAttribute("dto") BookViewDto dto,
                          BindingResult result,
                          Model model) {
         if (result.hasErrors()) {
             BookDto book = bookService.findById(id);
-            List<AuthorDto> authors = authorService.findAll();
-            List<GenreDto> genres = genreService.findAll();
-
             model.addAttribute("book", book);
-            model.addAttribute("authors", authors);
-            model.addAttribute("genres", genres);
-            model.addAttribute("dto", new BookViewDto());
-
+            populateModelWithCatalogs(model);
             return "edit";
         }
 
@@ -88,25 +77,21 @@ public class BookController {
         return "redirect:/";
     }
 
-    @PostMapping()
+    @PostMapping("/book/create")
     public String create(@Valid @ModelAttribute("book") BookViewDto book,
                          BindingResult result,
                          Model model) {
         if (result.hasErrors()) {
-            List<AuthorDto> authors = authorService.findAll();
-            List<GenreDto> genres = genreService.findAll();
-
-            model.addAttribute("authors", authors);
-            model.addAttribute("genres", genres);
-
+            populateModelWithCatalogs(model);
             return "create";
         }
 
         bookService.create(book.getTitle(), book.getAuthorId(), book.getGenres());
+
         return "redirect:/";
     }
 
-    @GetMapping("/create")
+    @GetMapping("/book/create_page")
     public String getCreatePage(Model model) {
         List<AuthorDto> authors = authorService.findAll();
         List<GenreDto> genres = genreService.findAll();
@@ -118,16 +103,25 @@ public class BookController {
         return "create";
     }
 
-    @GetMapping
+    @GetMapping("/")
     public String getAll(Model model) {
         List<BookDto> books = bookService.findAll();
         model.addAttribute("books", books);
         return "books";
     }
 
-    @PostMapping(value = "delete/{id}")
+    @PostMapping(value = "/book/delete/{id}")
     public String delete(@PathVariable("id") long id) {
         bookService.deleteById(id);
+
         return "redirect:/";
+    }
+
+    private void populateModelWithCatalogs(Model model) {
+        List<AuthorDto> authors = authorService.findAll();
+        List<GenreDto> genres = genreService.findAll();
+
+        model.addAttribute("authors", authors);
+        model.addAttribute("genres", genres);
     }
 }
