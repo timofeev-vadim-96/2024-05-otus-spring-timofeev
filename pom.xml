@@ -22,5 +22,6 @@
         <module>hw09-mvc-thymeleaf</module>
         <module>hw10-mvc-javaScript-ajax</module>
         <module>hw11-form-based-security</module>
+        <module>hw12-security-acl-method-authorization</module>
     </modules>
 </project>
