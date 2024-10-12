@@ -29,11 +29,6 @@ public class IntegrationConfig {
         return MessageChannels.queue(10).getObject();
     }
 
-    @Bean("outputChannel")
-    public MessageChannel outputChannel() {
-        return MessageChannels.queue(10).getObject();
-    }
-
     @Bean
     public IntegrationFlow journey(JourneyService journeyService) {
         return IntegrationFlow.from("inputChannel")

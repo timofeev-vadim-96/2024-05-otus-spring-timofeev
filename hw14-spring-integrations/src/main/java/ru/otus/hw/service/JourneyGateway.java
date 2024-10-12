@@ -10,7 +10,4 @@ import java.util.Collection;
 public interface JourneyGateway {
     @Gateway(requestChannel = "inputChannel")
     void startJourney(Collection<Adventurer> adventurers);
-
-    @Gateway(requestChannel = "survivalsChannel")
-    Adventurer finish(Adventurer adventurer);
 }
