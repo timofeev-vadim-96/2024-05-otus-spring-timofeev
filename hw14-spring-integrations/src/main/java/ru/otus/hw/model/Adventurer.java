@@ -2,10 +2,12 @@ package ru.otus.hw.model;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import ru.otus.hw.util.Profession;
 import ru.otus.hw.util.Race;
 
 @Getter
+@ToString
 public class Adventurer {
     private String fullName;
 

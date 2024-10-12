@@ -2,6 +2,8 @@ logging:
   level:
     root: info
 
-    org.springframework.integration: debug
+    org:
+      springframework:
+        integration: debug
 application:
   teamSize: 5

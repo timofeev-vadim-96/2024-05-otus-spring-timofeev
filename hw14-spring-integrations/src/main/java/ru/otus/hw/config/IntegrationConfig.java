@@ -39,10 +39,6 @@ public class IntegrationConfig {
         return IntegrationFlow.from("inputChannel")
                 .split()
                 .handle(journeyService, "magicalBomb")
-                .<Adventurer, Adventurer>transform(a -> {
-                    a.setLevel(a.getLevel() + 1);
-                    return a;
-                })
                 .<Adventurer, Boolean>route(Adventurer::isAlive, m -> m
                         .channelMapping(true, "survivalsChannel")
                         .channelMapping(false, "cemetery"))
@@ -53,6 +49,10 @@ public class IntegrationConfig {
     public IntegrationFlow finish() {
         return IntegrationFlow.from("survivalsChannel")
                 .<Adventurer>filter(a -> !a.getRace().equals(Race.Undead))
+                .<Adventurer, Adventurer>transform(a -> {
+                    a.setLevel(a.getLevel() + 1);
+                    return a;
+                })
                 .handle(message -> {
                     Adventurer adventurer = (Adventurer) message.getPayload();
                     System.out.printf("%nCongratulation for %s! You are a survival!%n", adventurer.getFullName());
