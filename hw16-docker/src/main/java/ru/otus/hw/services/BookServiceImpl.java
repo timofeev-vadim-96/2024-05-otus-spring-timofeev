@@ -2,9 +2,6 @@ package ru.otus.hw.services;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.access.prepost.PostFilter;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.acls.domain.BasePermission;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.otus.hw.exceptions.EntityNotFoundException;
@@ -13,10 +10,8 @@ import ru.otus.hw.models.Genre;
 import ru.otus.hw.repositories.AuthorRepository;
 import ru.otus.hw.repositories.BookRepository;
 import ru.otus.hw.repositories.GenreRepository;
-import ru.otus.hw.services.acl.AclWrapperService;
 import ru.otus.hw.services.dto.BookDto;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -33,12 +28,8 @@ public class BookServiceImpl implements BookService {
 
     private final BookRepository bookRepository;
 
-    private final AclWrapperService acl;
-
     @Override
     @Transactional(readOnly = true)
-    @PreAuthorize("canRead(#id, T(ru.otus.hw.services.dto.BookDto))")
-//    @PostAuthorize("hasPermission(returnObject, 'READ')")
     public BookDto findById(long id) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Book with id %s not found".formatted(id)));
@@ -48,10 +39,8 @@ public class BookServiceImpl implements BookService {
 
     @Override
     @Transactional(readOnly = true)
-    @PostFilter("hasPermission(filterObject, 'READ')")
     public List<BookDto> findAll() {
         List<Book> books = bookRepository.findAll();
-        books.sort(Comparator.comparingLong(Book::getId));
         return books.stream().map(BookDto::new).collect(Collectors.toList());
     }
 
@@ -61,8 +50,6 @@ public class BookServiceImpl implements BookService {
         Book created = save(null, title, authorId, genresIds);
 
         BookDto dto = new BookDto(created);
-
-        acl.createPermission(dto, BasePermission.READ);
 
         return dto;
     }
