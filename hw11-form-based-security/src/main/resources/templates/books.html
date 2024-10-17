@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"> <!--Не забывать прописывать-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Library</title>
+    <style type="text/css">
+        body {
+            padding: 50px;
+        }
+
+        .books {
+            border: 1px solid steelblue;
+            width: 300px;
+            border-collapse: collapse;
+        }
+
+        .books tr td, th {
+            padding: 5px;
+            border: 1px solid steelblue;
+        }
+
+        .books td:last-child, td:first-child {
+            width: 50px;
+        }
+    </style>
+</head>
+<body>
+<h1>Book list</h1>
+<table class="books">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Title</th>
+        <th>Author</th>
+    </tr>
+    </thead>
+    <tr th:each="book : ${books}">
+        <td>
+            <a href="book.html" th:href="@{/__${book.getId()}__}" th:text="${book.getId()}">1</a>
+        </td>
+        <td th:text="${book.title}">title</td>
+        <td th:text="${book.getAuthor().getFullName()}">author</td>
+    </tr>
+</table>
+<p></p>
+<a href="create.html" th:href="@{/create}">
+    <button type="button">Create a new book</button>
+</a>
+<br>
+<a href="/logout">
+    <button type="button">Logout</button>
+</a>
+</body>
+</html>
