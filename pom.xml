@@ -25,5 +25,6 @@
         <module>hw12-security-acl-method-authorization</module>
         <module>hw13-spring-batch-migrations</module>
         <module>hw14-spring-integrations</module>
+        <module>hw15-spring-actuator</module>
     </modules>
 </project>
