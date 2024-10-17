@@ -23,3 +23,5 @@ mvnw
 technical-tasks/**
 spring-shell.log
 **/docker-compose/config
+**/postgres-data/
+**/commands.txt

@@ -1,0 +1,24 @@
+spring:
+  #ACL отваливается в postgres по неизвестной причине. Контроллеры начинают возвращать 400
+  datasource:
+    url: jdbc:postgresql://localhost:5432/otus
+    username: postgres
+    password: admin
+  #  datasource:
+  #    url: jdbc:h2:mem:testdb
+  jpa:
+    generate-ddl: false
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    open-in-view: false
+
+config:
+  rmKey: ai3odmwvid1o #remember me key
+logging:
+  level:
+    org:
+      springframework:
+        security:
+          access: DEBUG
+          acl: DEBUG
