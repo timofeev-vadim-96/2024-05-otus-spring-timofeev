@@ -26,5 +26,6 @@
         <module>hw13-spring-batch-migrations</module>
         <module>hw14-spring-integrations</module>
         <module>hw15-spring-actuator</module>
+        <module>hw16-docker</module>
     </modules>
 </project>
