@@ -1,0 +1,38 @@
+#spring:
+#  application:
+#    name: discovery-service
+#server:
+#  port: 8761
+#eureka:
+#  server:
+#    # для расчета Renews threshold (на UI эврики). default = 0.75
+#    renewal-percent-threshold: 0.5
+#  instance:
+#    hostname: localhost
+#    #через сколько забыть приложение после потери с ним сети
+#    lease-expiration-duration-in-seconds: 90
+#  client:
+#    #регистрировать ли данное приложение в Eureka-server в качестве клиента
+#    register-with-eureka: false
+#    #получать ли данные о приложениях, зарегистрированных в Eureka. Для Eureka-сервера не нужно крч.
+#    fetch-registry: false
+#    service-url:
+#      defaultZone: http://${eureka.instance.hostname}:${server.port}/eureka/
+spring:
+  application:
+    name: discovery-service
+  cloud:
+    config:
+    # если приложению не удалось получить конфигурацию, оно не будет запущено.
+      fail-fast: true
+      retry:
+      #через какое время после запуска приложения обращаться за настройками к конфиг-серверу
+        initial-interval: 5000
+        max-attempts: 10
+        max-interval: 5000
+        multiplier: 1.2
+  #куда обращаться за конфигами (отдельное приложение)
+  config:
+    import: optional:configserver:http://localhost:8888
+  codec:
+    max-in-memory-size: 10MB
