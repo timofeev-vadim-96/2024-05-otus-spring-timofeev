@@ -13,6 +13,8 @@
     <version>0.0.1-SNAPSHOT</version>
     <name>hw17-spring-cloud-circuit-breaker</name>
 
+    <packaging>pom</packaging>
+
     <modules>
         <module>discovery-service</module>
         <module>first-service</module>
