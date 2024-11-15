@@ -9,10 +9,6 @@ spring:
         git:
           uri: "git@github.com:timofeev-vadim-96/test-cloud-config.git"
           #если в репозитории нет подмодулей, то штука подобного рода не нужна
-#          search-paths: "spring-cloud/git-config"
-          #Как-то относится к настройкам авторизации
-#          ignoreLocalSshSettings: false
-#          strictHostKeyChecking: false
           default-label: main
           searchPaths: /*
           clone-on-start: true

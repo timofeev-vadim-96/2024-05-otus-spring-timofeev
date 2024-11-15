@@ -1,64 +1,42 @@
 package ru.otus.second_service.service;
 
-import com.netflix.discovery.EurekaClient;
-import org.springframework.cloud.client.circuitbreaker.CircuitBreaker;
-import io.github.resilience4j.core.functions.CheckedFunction;
-import io.github.resilience4j.ratelimiter.RateLimiter;
+import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
+import io.github.resilience4j.ratelimiter.RequestNotPermitted;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
 import ru.otus.second_service.service.dto.SimpleMessage;
 
-import java.net.URI;
-import java.util.UUID;
-
-
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class SimpleService {
-    private final FeignService feignService;
-
-    private final EurekaClient discoveryClient;
-
-    private final CheckedFunction<String, String> getInfoFromSecondServiceFunction;
-
-    public SimpleService(FeignService feignService, EurekaClient discoveryClient, CircuitBreaker circuitBreaker,
-                         RateLimiter rateLimiter) {
-        this.feignService = feignService;
-        this.discoveryClient = discoveryClient;
-
-        this.getInfoFromSecondServiceFunction = RateLimiter.decorateCheckedFunction(rateLimiter,
-                name -> circuitBreaker.run(this::getAdditionalInfo,
-                        t -> {
-                            log.error("the Circuit Breaker has been triggered for the maximum waiting time for a " +
-                                    "response from an external service:{}", t.getMessage());
-                            return "there are no info from second service because of delay";
-                        }));
-    }
-
-    //curl -v http://localhost:8081/
+    private final InfoClient feignService;
 
     public SimpleMessage info() {
         SimpleMessage responseMessage = new SimpleMessage();
         responseMessage.setInfoFromFirstService("some info from first service");
-        try {
-            String infoFromSecondService = getInfoFromSecondServiceFunction.apply(UUID.randomUUID().toString());
-            responseMessage.setInfoFromSecondService(infoFromSecondService);
-        } catch (Throwable ex) {
-            log.error("can't execute additional info, error:{}", ex.getMessage());
-        }
+        String infoFromSecondService = getAdditionalInfo();
+        responseMessage.setInfoFromSecondService(infoFromSecondService);
+
         return responseMessage;
     }
 
     private String getAdditionalInfo() {
         try {
-            var clientInfo = discoveryClient.getNextServerFromEureka("SECOND-SERVICE", false);
-            log.info("clientInfo from Eureka:{}", clientInfo);
-            String additionalInfo = feignService.additionalInfo(new URI(clientInfo.getHomePageUrl()));
+            String additionalInfo = feignService.additionalInfo();
             log.info("info from second service:{}", additionalInfo);
             return additionalInfo;
-        } catch (Exception e) {
-            log.error("can't get additional info, error:{}", e.getMessage());
-            return "there are no info from second service because of rate limiter";
+        } catch (CallNotPermittedException e) {
+            log.error("can't get additional info because of Circuit Breaker, error:{}", e.getMessage());
+            return Strings.EMPTY;
+        } catch (RequestNotPermitted e) {
+            log.error("can't get additional info because of RateLimiter, error:{}", e.getMessage());
+            return Strings.EMPTY;
+        } catch (Throwable ex) {
+            log.error("can't execute additional info, error:{}", ex.getMessage());
+            return Strings.EMPTY;
         }
     }
 }

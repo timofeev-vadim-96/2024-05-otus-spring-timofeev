@@ -9,7 +9,7 @@
 
 выполнить команду. порт 60000 - api-gateway, который перенаправит в first-service
 ```bash
-curl -v http://localhost:60000/first-service/api/v1/
+curl http://localhost:60000/first-service/api/v1
 ```
   * ограничение по првемени ответа от второго сервиса = 5 сек
   * лимит запросов 1/10sec

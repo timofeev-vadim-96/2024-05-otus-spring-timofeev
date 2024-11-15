@@ -1,16 +1,3 @@
-#spring:
-
-#server:
-#  port: 8080
-#eureka:
-#  client:
-#    register-with-eureka: true
-#    fetch-registry: true
-#    service-url:
-#      defaultZone : http://localhost:8761/eureka/
-#  instance:
-#    # как часто отправлять данные о себе на Eureka-сервер
-#    lease-renewal-interval-in-seconds: 30
 spring:
   application:
     name: first-service
@@ -29,3 +16,45 @@ spring:
     import: optional:configserver:http://localhost:8888
   codec:
     max-in-memory-size: 10MB
+
+resilience4j:
+  timelimiter:
+    configs:
+      default:
+        #ограничение времени на выполнение метода
+        timeout-duration: 1s
+
+  ratelimiter:
+    configs:
+      default:
+        # время в течение которого поток ждет разрешения, по ум. 5 сек
+        timeout-duration:
+          seconds: 1
+        #период за который ограничивается число вызовов, по ум. 500 наносекунд
+        limit-refresh-period: 10s
+        #предельное число вызовов за время указанное в limitRefreshPeriod, по ум. 50
+        limit-for-period: 1
+
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-type: time_based
+        #количество секунд, по % невалидных запросов которых будет определяться состояние внешнего сервиса
+        slidingWindowSize: 100
+        #время, по которому определяется что запрос является медленным
+        slowCallDurationThreshold: 5s
+        #порог невалидных запросов, по ум. 50
+        failureRateThreshold: 50
+        #минимальное количество вызовов, по которым принимается решение о переключении состояния
+        minimumNumberOfCalls: 10
+
+  retry:
+    configs:
+      default:
+        max-attempts: 3
+        wait-duration:
+          seconds: 2
+        retryExceptions:
+          - org.springframework.web.client.HttpServerErrorException
+          - java.util.concurrent.TimeoutException
+          - java.io.IOException

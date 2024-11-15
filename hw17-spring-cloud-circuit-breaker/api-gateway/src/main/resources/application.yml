@@ -1,12 +1,3 @@
-#server:
-#  port: 60000
-#  forward-headers-strategy: framework #добавление инфы для конечного сервиса, что запрос был спроксирован
-#  error:
-#    include-message: always
-#eureka:
-#  client:
-#    register-with-eureka: false
-#    fetch-registry: true
 server:
   port: 60000
   forward-headers-strategy: framework #добавление инфы для конечного сервиса, что запрос был спроксирован

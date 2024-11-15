@@ -1,15 +1,3 @@
-#server:
-#  port: 8081
-#eureka:
-#  client:
-#    register-with-eureka: true
-#    #этот сервис не будет обращаться к другим
-#    fetch-registry: false
-#    service-url:
-#      defaultZone : http://localhost:8761/eureka/
-#  instance:
-#    # как часто отправлять данные о себе на Eureka-сервер
-#    lease-renewal-interval-in-seconds: 30
 spring:
   application:
     name: second-service

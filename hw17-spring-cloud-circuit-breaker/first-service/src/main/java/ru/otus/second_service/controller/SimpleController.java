@@ -13,7 +13,7 @@ import ru.otus.second_service.service.dto.SimpleMessage;
 public class SimpleController {
     private final SimpleService simpleService;
 
-    @GetMapping("/first-service/api/v1/")
+    @GetMapping("/first-service/api/v1")
     public ResponseEntity<SimpleMessage> getInfo() {
         SimpleMessage info = simpleService.info();
         return new ResponseEntity<>(info, HttpStatus.OK);
