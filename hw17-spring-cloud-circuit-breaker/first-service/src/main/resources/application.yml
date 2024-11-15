@@ -19,14 +19,15 @@ spring:
 
 resilience4j:
   timelimiter:
-    configs:
-      default:
-        #ограничение времени на выполнение метода
-        timeout-duration: 1s
+    instances:
+      #ограничение времени на выполнение метода
+      defaultTimeLimiter:
+        timeout-duration: 4s
+        cancel-running-future: true
 
   ratelimiter:
-    configs:
-      default:
+    instances:
+      defaultRateLimiter:
         # время в течение которого поток ждет разрешения, по ум. 5 сек
         timeout-duration:
           seconds: 1
@@ -36,8 +37,8 @@ resilience4j:
         limit-for-period: 1
 
   circuitbreaker:
-    configs:
-      default:
+    instances:
+      defaultCircuitBreaker:
         sliding-window-type: time_based
         #количество секунд, по % невалидных запросов которых будет определяться состояние внешнего сервиса
         slidingWindowSize: 100
@@ -49,11 +50,11 @@ resilience4j:
         minimumNumberOfCalls: 10
 
   retry:
-    configs:
-      default:
-        max-attempts: 3
+    instances:
+      defaultRetry:
+        max-attempts: 2
         wait-duration:
-          seconds: 2
+          seconds: 1
         retryExceptions:
           - org.springframework.web.client.HttpServerErrorException
           - java.util.concurrent.TimeoutException
