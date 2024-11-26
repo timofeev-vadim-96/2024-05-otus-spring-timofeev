@@ -1,0 +1,28 @@
+server:
+  port: 60000
+  forward-headers-strategy: framework #добавление инфы для конечного сервиса, что запрос был спроксирован
+  error:
+    include-message: always
+eureka:
+  client:
+    register-with-eureka: false
+    fetch-registry: true
+spring:
+  application:
+    name: api-gateway
+  #куда обращаться за конфигами (отдельное приложение)
+  config:
+    import: optional:configserver:http://localhost:8888
+  codec:
+    max-in-memory-size: 10MB
+  cloud:
+    config:
+      # если приложению не удалось получить конфигурацию, оно не будет запущено.
+      fail-fast: true
+      retry:
+        #через какое время после запуска приложения обращаться за настройками к конфиг-серверу
+        initial-interval: 5000
+        max-attempts: 10
+        max-interval: 5000
+        multiplier: 1.2
+

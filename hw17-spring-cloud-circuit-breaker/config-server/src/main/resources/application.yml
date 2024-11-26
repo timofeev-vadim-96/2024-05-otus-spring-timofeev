@@ -1,0 +1,19 @@
+server:
+  port: 8888
+spring:
+  application:
+    name: config-server
+  cloud:
+    config:
+      server:
+        git:
+          uri: "git@github.com:timofeev-vadim-96/test-cloud-config.git"
+          #если в репозитории нет подмодулей, то штука подобного рода не нужна
+          default-label: main
+          searchPaths: /*
+          clone-on-start: true
+          #как часто Spring Cloud Config Server будет проверять Git-репозиторий на наличие изменений
+          refreshRate: 60
+logging:
+  level:
+    root: info

@@ -27,5 +27,6 @@
         <module>hw14-spring-integrations</module>
         <module>hw15-spring-actuator</module>
         <module>hw16-docker</module>
+        <module>hw17-spring-cloud-circuit-breaker</module>
     </modules>
 </project>

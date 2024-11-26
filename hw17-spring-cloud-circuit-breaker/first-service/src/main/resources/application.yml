@@ -1,0 +1,61 @@
+spring:
+  application:
+    name: first-service
+  cloud:
+    config:
+      # если приложению не удалось получить конфигурацию, оно не будет запущено.
+      fail-fast: true
+      retry:
+        #через какое время после запуска приложения обращаться за настройками к конфиг-серверу
+        initial-interval: 5000
+        max-attempts: 10
+        max-interval: 5000
+        multiplier: 1.2
+  #куда обращаться за конфигами (отдельное приложение)
+  config:
+    import: optional:configserver:http://localhost:8888
+  codec:
+    max-in-memory-size: 10MB
+
+resilience4j:
+  timelimiter:
+    instances:
+      #ограничение времени на выполнение метода
+      defaultTimeLimiter:
+        timeout-duration: 4s
+        cancel-running-future: true
+
+  ratelimiter:
+    instances:
+      defaultRateLimiter:
+        # время в течение которого поток ждет разрешения, по ум. 5 сек
+        timeout-duration:
+          seconds: 1
+        #период за который ограничивается число вызовов, по ум. 500 наносекунд
+        limit-refresh-period: 10s
+        #предельное число вызовов за время указанное в limitRefreshPeriod, по ум. 50
+        limit-for-period: 1
+
+  circuitbreaker:
+    instances:
+      defaultCircuitBreaker:
+        sliding-window-type: time_based
+        #количество секунд, по % невалидных запросов которых будет определяться состояние внешнего сервиса
+        slidingWindowSize: 100
+        #время, по которому определяется что запрос является медленным
+        slowCallDurationThreshold: 5s
+        #порог невалидных запросов, по ум. 50
+        failureRateThreshold: 50
+        #минимальное количество вызовов, по которым принимается решение о переключении состояния
+        minimumNumberOfCalls: 10
+
+  retry:
+    instances:
+      defaultRetry:
+        max-attempts: 2
+        wait-duration:
+          seconds: 1
+        retryExceptions:
+          - org.springframework.web.client.HttpServerErrorException
+          - java.util.concurrent.TimeoutException
+          - java.io.IOException
