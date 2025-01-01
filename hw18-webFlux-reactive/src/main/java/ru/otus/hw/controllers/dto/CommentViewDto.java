@@ -15,5 +15,5 @@ public class CommentViewDto {
     private String text;
 
     @NotNull
-    private Long bookId;
+    private String bookId;
 }

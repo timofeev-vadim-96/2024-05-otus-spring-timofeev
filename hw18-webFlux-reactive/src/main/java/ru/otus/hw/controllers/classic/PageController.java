@@ -13,7 +13,7 @@ public class PageController {
     }
 
     @GetMapping("/edit/{id}")
-    public String edit(@PathVariable("id") long id, Model model) {
+    public String edit(@PathVariable("id") String id, Model model) {
         model.addAttribute("id", id);
         return "edit";
     }
@@ -24,7 +24,7 @@ public class PageController {
     }
 
     @GetMapping("/book/{id}")
-    public String book(@PathVariable("id") long id, Model model) {
+    public String book(@PathVariable("id") String id, Model model) {
         model.addAttribute("id", id);
         return "book";
     }

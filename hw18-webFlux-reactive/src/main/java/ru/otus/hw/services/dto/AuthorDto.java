@@ -9,7 +9,7 @@ import ru.otus.hw.models.Author;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AuthorDto {
-    private Long id;
+    private String id;
 
     private String fullName;
 

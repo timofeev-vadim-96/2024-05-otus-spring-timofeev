@@ -138,7 +138,7 @@
         }
 
         const selectedGenres = Array.from(genresField.selectedOptions)
-            .map(option => parseInt(option.value));
+            .map(option => option.value);
 
         // Проверка на наличие выбранных жанров
         if (selectedGenres.length === 0 || title.length < 3) {
@@ -159,12 +159,12 @@
             })
         })
             .then(response => {
-                if (response.status === 201) {
-                    console.log('Book created successfully!');
+                if (response.status === 200) {
+                    console.log('Book edited successfully!');
                     window.location.href = '/';
                 } else if (response.status === 400) {
-                    console.log('Field title need to be unique')
-                    titleErrorsDiv.textContent = "Field title need to be unique";
+                    console.log('Bad request')
+                    titleErrorsDiv.textContent = "Bad request";
                     titleErrorsDiv.style.display = "block"; // Показываем сообщение об ошибке
                 } else {
                     console.error('Error creating book:', response.status);

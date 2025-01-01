@@ -9,7 +9,7 @@ import ru.otus.hw.models.Genre;
 @AllArgsConstructor
 @NoArgsConstructor
 public class GenreDto {
-    private Long id;
+    private String id;
 
     private String name;
 

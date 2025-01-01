@@ -7,6 +7,9 @@ dependency-reduced-pom.xml
 !**/src/main/**/target/
 !**/src/test/**/target/
 log.*
+**/mongo-data/
+**/mongo-config/
+
 
 
 ### IntelliJ IDEA ###

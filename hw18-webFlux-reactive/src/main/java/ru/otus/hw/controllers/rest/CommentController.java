@@ -1,15 +1,12 @@
 package ru.otus.hw.controllers.rest;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Mono;
 import ru.otus.hw.controllers.dto.CommentViewDto;
 import ru.otus.hw.services.CommentService;
 import ru.otus.hw.services.dto.CommentDto;
@@ -22,20 +19,23 @@ public class CommentController {
     private final CommentService commentService;
 
     @PostMapping("/api/v1/comment")
-    public ResponseEntity<CommentDto> create(@Valid @RequestBody CommentViewDto comment) {
-        CommentDto created = commentService.create(comment.getText(), comment.getBookId());
-        return new ResponseEntity<>(created, HttpStatus.CREATED);
+    public Mono<ResponseEntity<CommentDto>> create(@Valid @RequestBody CommentViewDto comment) {
+        return commentService.create(comment.getText(), comment.getBookId())
+                .map(c -> new ResponseEntity<>(c, HttpStatus.CREATED))
+                .onErrorResume(e -> Mono.just(ResponseEntity.badRequest().build()));
     }
 
     @DeleteMapping("/api/v1/comment/{id}")
-    public ResponseEntity<Void> delete(@PathVariable("id") long id) {
-        commentService.deleteById(id);
-        return new ResponseEntity<>(HttpStatus.OK);
+    public Mono<ResponseEntity<Void>> delete(@PathVariable("id") String id) {
+        return commentService.deleteById(id)
+                .then(Mono.just(ResponseEntity.ok().build()));
     }
 
     @GetMapping("/api/v1/comment/{bookId}")
-    public ResponseEntity<List<CommentDto>> getAll(@PathVariable("bookId") long bookId) {
-        List<CommentDto> comments = commentService.findAllByBookId(bookId);
-        return new ResponseEntity<>(comments, HttpStatus.OK);
+    public Mono<ResponseEntity<List<CommentDto>>> getAllByBookId(@NotNull @PathVariable("bookId") String bookId) {
+        return commentService.findAllByBookId(bookId)
+                .collectList()
+                .map(comments -> new ResponseEntity<>(comments, HttpStatus.OK))
+                .onErrorResume(e -> Mono.just(ResponseEntity.badRequest().build()));
     }
 }

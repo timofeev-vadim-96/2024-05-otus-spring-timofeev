@@ -15,15 +15,15 @@ import java.util.Set;
 @NoArgsConstructor
 public class BookViewDto {
     @Nullable
-    private Long id;
+    private String id;
 
     @NotNull
     @Size(min = 3)
     private String title;
 
     @NotNull
-    private Long authorId;
+    private String authorId;
 
     @NotEmpty
-    private Set<Long> genres;
+    private Set<String> genres;
 }

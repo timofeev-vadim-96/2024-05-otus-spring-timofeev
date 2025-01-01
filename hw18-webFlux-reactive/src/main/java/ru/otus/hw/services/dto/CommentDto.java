@@ -9,7 +9,7 @@ import ru.otus.hw.models.Comment;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CommentDto {
-    private Long id;
+    private String id;
 
     private String text;
 
