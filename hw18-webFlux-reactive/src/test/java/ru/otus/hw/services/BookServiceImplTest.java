@@ -1,171 +1,230 @@
-//package ru.otus.hw.services;
-//
-//import org.junit.jupiter.api.BeforeEach;
-//import org.junit.jupiter.api.DisplayName;
-//import org.junit.jupiter.api.Test;
-//import org.junit.jupiter.params.ParameterizedTest;
-//import org.junit.jupiter.params.provider.MethodSource;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-//import org.springframework.context.annotation.Import;
-//import org.springframework.test.annotation.DirtiesContext;
-//import org.springframework.transaction.annotation.Propagation;
-//import org.springframework.transaction.annotation.Transactional;
-//import ru.otus.hw.exceptions.EntityNotFoundException;
-//import ru.otus.hw.services.dto.AuthorDto;
-//import ru.otus.hw.services.dto.BookDto;
-//import ru.otus.hw.services.dto.GenreDto;
-//
-//import java.util.List;
-//import java.util.Optional;
-//import java.util.Set;
-//import java.util.stream.Collectors;
-//import java.util.stream.LongStream;
-//
-//import static org.assertj.core.api.Assertions.assertThat;
-//import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-//import static org.junit.jupiter.api.Assertions.assertEquals;
-//import static org.junit.jupiter.api.Assertions.assertFalse;
-//import static org.junit.jupiter.api.Assertions.assertThrows;
-//import static org.junit.jupiter.api.Assertions.assertTrue;
-//
-//@DisplayName("Сервис для работы с книгами")
-//@DataJpaTest
-//@Import({BookServiceImpl.class})
-//@Transactional(propagation = Propagation.NEVER)
-//class BookServiceImplTest {
-//    private static final long BOOK_LIST_SIZE = 3;
-//
-//    @Autowired
-//    private BookServiceImpl bookService;
-//
-//    private List<BookDto> dbBooks;
-//
-//    @BeforeEach
-//    void setUp() {
-//        dbBooks = getDbBooks();
-//    }
-//
-//    @ParameterizedTest
-//    @MethodSource("getDbBooks")
-//    void findById(BookDto book) {
-//        BookDto actual = bookService.findById(book.getId());
-//
-//        assertThat(actual).usingRecursiveComparison()
-//                .isEqualTo(book);
-//    }
-//
-//    @Test
-//    void findAll() {
-//        List<BookDto> actualBooks = bookService.findAll();
-//
-//        assertFalse(actualBooks.isEmpty());
-//        assertEquals(BOOK_LIST_SIZE, actualBooks.size());
-//        assertThat(actualBooks).containsExactlyInAnyOrderElementsOf(dbBooks);
-//    }
-//
-//    @Test
-//    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
-//    void create() {
-//        long expectedAuthorId = 1L;
-//        String expectedTitle = "titleToInsert";
-//        Set<Long> expectedGenresIds = Set.of(1L, 2L, 5L);
-//
-//        BookDto actual = bookService.create(expectedTitle, expectedAuthorId, expectedGenresIds);
-//
-//        assertEquals(expectedTitle, actual.getTitle());
-//        assertEquals(expectedGenresIds, actual.getGenres()
-//                .stream()
-//                .map(GenreDto::getId)
-//                .collect(Collectors.toSet()));
-//        assertEquals(expectedAuthorId, actual.getAuthor().getId());
-//    }
-//
-//    @Test
-//    void insertNegative() {
-//        assertThrows(
-//                IllegalArgumentException.class,
-//                () -> bookService.create("someTitle", 1L, Set.of()));
-//        assertThrows(
-//                EntityNotFoundException.class,
-//                () -> bookService.create("someTitle", Long.MAX_VALUE, Set.of(1L, 2L)));
-//        assertThrows(
-//                EntityNotFoundException.class,
-//                () -> bookService.create("someTitle", 1L, Set.of(1L, Long.MAX_VALUE)));
-//    }
-//
-//    @Test
-//    void updateNegative() {
-//        assertThrows(
-//                EntityNotFoundException.class,
-//                () -> bookService.update(Long.MIN_VALUE, "someTitle", 1L, Set.of(1L, 2L)));
-//        assertThrows(
-//                IllegalArgumentException.class,
-//                () -> bookService.update(1L, "someTitle", 1L, Set.of()));
-//        assertThrows(
-//                EntityNotFoundException.class,
-//                () -> bookService.update(1L, "someTitle", Long.MAX_VALUE, Set.of(1L, 2L)));
-//        assertThrows(
-//                EntityNotFoundException.class,
-//                () -> bookService.update(1L, "someTitle", 1L, Set.of(1L, Long.MAX_VALUE)));
-//    }
-//
-//    @Test
-//    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
-//    void update() {
-//        long expectedAuthorId = 1L;
-//        String expectedTitle = "titleToUpdate";
-//        Set<Long> expectedGenresIds = Set.of(1L, 3L, 6L);
-//
-//        BookDto actual = bookService.update(
-//                1L,
-//                expectedTitle,
-//                expectedAuthorId,
-//                expectedGenresIds);
-//
-//        assertEquals(expectedGenresIds, actual.getGenres()
-//                .stream()
-//                .map(GenreDto::getId)
-//                .collect(Collectors.toSet()));
-//        assertEquals(expectedTitle, actual.getTitle());
-//        assertEquals(expectedAuthorId, actual.getAuthor().getId());
-//    }
-//
-//    @Test
-//    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
-//    void deleteById() {
-//        assertDoesNotThrow(()->bookService.findById(2L));
-//
-//        bookService.deleteById(2L);
-//
-//        assertThrows(EntityNotFoundException.class, ()->bookService.findById(2L));
-//    }
-//
-//    private static List<AuthorDto> getDbAuthors() {
-//        return LongStream.range(1, 4).boxed()
-//                .map(id -> new AuthorDto(id, "Author_" + id))
-//                .toList();
-//    }
-//
-//    private static List<GenreDto> getDbGenres() {
-//        return LongStream.range(1, 7).boxed()
-//                .map(id -> new GenreDto(id, "Genre_" + id))
-//                .toList();
-//    }
-//
-//    private static List<BookDto> getDbBooks(List<AuthorDto> dbAuthors, List<GenreDto> dbGenres) {
-//        return LongStream.range(1, 4).boxed()
-//                .map(id -> new BookDto(id,
-//                        "BookTitle_" + id,
-//                        dbAuthors.get((int) (id - 1)),
-//                        dbGenres.subList((int) ((id - 1) * 2), (int) ((id - 1) * 2 + 2))
-//                ))
-//                .toList();
-//    }
-//
-//    private static List<BookDto> getDbBooks() {
-//        var dbAuthors = getDbAuthors();
-//        var dbGenres = getDbGenres();
-//        return getDbBooks(dbAuthors, dbGenres);
-//    }
-//}
+package ru.otus.hw.services;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import ru.otus.hw.exceptions.EntityNotFoundException;
+import ru.otus.hw.models.Author;
+import ru.otus.hw.models.Book;
+import ru.otus.hw.models.Genre;
+import ru.otus.hw.repositories.ReactiveAuthorRepository;
+import ru.otus.hw.repositories.ReactiveBookRepository;
+import ru.otus.hw.repositories.ReactiveGenreRepository;
+import ru.otus.hw.services.dto.BookDto;
+import ru.otus.hw.services.dto.GenreDto;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+@DisplayName("Сервис для работы с книгами")
+@DataMongoTest
+@Import({BookServiceImpl.class, AuthorServiceImpl.class, GenreServiceImpl.class})
+@Transactional(propagation = Propagation.NEVER)
+class BookServiceImplTest {
+    private static final long BOOK_LIST_SIZE = 3;
+
+    @Autowired
+    private BookServiceImpl bookService;
+
+    @Autowired
+    private ReactiveBookRepository bookRepository;
+
+    @Autowired
+    private ReactiveAuthorRepository authorRepository;
+
+    @Autowired
+    private ReactiveGenreRepository genreRepository;
+
+    @Test
+    void findById() {
+        Book expected = bookRepository.findAll()
+                .collectList()
+                .block()
+                .get(0);
+
+        BookDto actual = bookService.findById(expected.getId()).block();
+
+        assertNotNull(actual);
+        assertThat(actual).usingRecursiveComparison().isEqualTo(expected);
+    }
+
+    @Test
+    void findByIdNegative() {
+        String notExpectedId = "notExpectedId";
+
+        assertThrows(EntityNotFoundException.class, () -> bookService.findById(notExpectedId).block());
+    }
+
+    @Test
+    void findAll() {
+        List<BookDto> actualBooks = bookService.findAll().collectList().block();
+
+        assertFalse(actualBooks.isEmpty());
+        assertTrue(actualBooks.size() >= BOOK_LIST_SIZE);
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
+    void create() {
+        Author expectedAuthor = authorRepository.findAll().collectList().block().get(0);
+        String expectedTitle = "titleToInsert";
+        Set<Genre> expectedGenres = new HashSet<>(genreRepository.findAll().collectList().block());
+        BookDto actual = bookService.create(expectedTitle, expectedAuthor.getId(),
+                expectedGenres.stream()
+                        .map(Genre::getId)
+                        .collect(Collectors.toSet())).block();
+
+        Optional<Book> insertedBook = Optional.ofNullable(bookRepository.findById(actual.getId()).block());
+
+        assertTrue(insertedBook.isPresent());
+        assertThat(actual)
+                .usingRecursiveComparison()
+                .ignoringFields("genres")
+                .isEqualTo(insertedBook.get());
+        assertThat(insertedBook.get().getGenres()).containsAll(expectedGenres);
+    }
+
+    @Test
+    void insertNegative() {
+        Author expectedAuthor = authorRepository.findAll()
+                .collectList()
+                .block()
+                .get(0);
+        List<Genre> genres = genreRepository.findAll()
+                .collectList()
+                .block()
+                .stream()
+                .limit(2)
+                .toList();
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> bookService.create("someTitle", expectedAuthor.getId(), Set.of())
+                        .block());
+        assertThrows(
+                EntityNotFoundException.class,
+                () -> bookService.create(
+                                "someTitle",
+                                "unexpectedAuthorId",
+                                Set.of(genres.get(0).getId(), genres.get(1).getId()))
+                        .block());
+        assertThrows(
+                EntityNotFoundException.class,
+                () -> bookService.create(
+                                "someTitle",
+                                expectedAuthor.getId(),
+                                Set.of(genres.get(0).getId(), "unexpectedGenreId"))
+                        .block());
+    }
+
+    @Test
+    void updateNegative() {
+        Author expectedAuthor = authorRepository.findAll()
+                .collectList()
+                .block()
+                .get(0);
+        List<Genre> genres = genreRepository.findAll()
+                .collectList()
+                .block()
+                .stream()
+                .limit(2)
+                .toList();
+        Book book = bookRepository.findAll()
+                .collectList().
+                block()
+                .get(0);
+
+        assertThrows(
+                EntityNotFoundException.class,
+                () -> bookService.update("unexpectedBookId", "someTitle", expectedAuthor.getId(),
+                                Set.of(genres.get(0).getId(), genres.get(1).getId()))
+                        .block());
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> bookService.update(
+                                book.getId(),
+                                "someTitle",
+                                expectedAuthor.getId(),
+                                Set.of())
+                        .block());
+        assertThrows(
+                EntityNotFoundException.class,
+                () -> bookService.update(
+                                book.getId(),
+                                "someTitle",
+                                "unexpectedAuthorId",
+                                Set.of(genres.get(0).getId(), genres.get(1).getId()))
+                        .block());
+        assertThrows(
+                EntityNotFoundException.class,
+                () -> bookService.update(
+                                book.getId(),
+                                "someTitle",
+                                expectedAuthor.getId(),
+                                Set.of(genres.get(0).getId(), "unexpectedGenreId"))
+                        .block());
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
+    void update() {
+        String expectedTitle = "titleToUpdate";
+        Author expectedAuthor = authorRepository.findAll().collectList().block().get(0);
+        Set<Genre> expectedGenres = genreRepository.findAll()
+                .collectList()
+                .block()
+                .stream()
+                .limit(2)
+                .collect(Collectors.toSet());
+        Book oldConditionBook = bookRepository.findAll()
+                .collectList()
+                .block()
+                .get(0);
+
+        BookDto actual = bookService.update(
+                        oldConditionBook.getId(),
+                        expectedTitle,
+                        expectedAuthor.getId(),
+                        expectedGenres.stream()
+                                .limit(2)
+                                .map(Genre::getId)
+                                .collect(Collectors.toSet()))
+                .block();
+
+        Book bookById = bookRepository.findById(oldConditionBook.getId()).block();
+
+        assertEquals(actual.getId(), bookById.getId());
+        assertThat(oldConditionBook)
+                .usingRecursiveComparison()
+                .isNotEqualTo(actual);
+        assertEquals(expectedTitle, actual.getTitle());
+        assertThat(actual.getGenres())
+                .containsExactlyInAnyOrderElementsOf(expectedGenres.stream()
+                        .map(GenreDto::new).collect(Collectors.toSet()));
+    }
+
+    @Test
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
+    void deleteById() {
+        String bookId = bookRepository.findAll().collectList().block().get(0).getId();
+
+        bookService.deleteById(bookId).block();
+        assertNull(bookRepository.findById(bookId).block());
+    }
+}

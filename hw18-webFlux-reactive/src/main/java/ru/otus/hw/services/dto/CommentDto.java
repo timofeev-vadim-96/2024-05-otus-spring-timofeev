@@ -20,4 +20,8 @@ public class CommentDto {
         text = comment.getText();
         book = new BookDto(comment.getBook());
     }
+
+    public static Comment fromDto(CommentDto dto) {
+        return new Comment(dto.getId(), dto.text, BookDto.fromDto(dto.getBook()));
+    }
 }

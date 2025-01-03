@@ -17,4 +17,8 @@ public class GenreDto {
         id = genre.getId();
         name = genre.getName();
     }
+
+    public static Genre fromDto(GenreDto dto) {
+        return new Genre(dto.getId(), dto.getName());
+    }
 }

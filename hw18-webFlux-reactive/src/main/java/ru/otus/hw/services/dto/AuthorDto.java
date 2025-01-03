@@ -17,4 +17,8 @@ public class AuthorDto {
         id = author.getId();
         fullName = author.getFullName();
     }
+
+    public static Author fromDto(AuthorDto dto) {
+        return new Author(dto.getId(), dto.getFullName());
+    }
 }

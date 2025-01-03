@@ -6,6 +6,7 @@ import lombok.NoArgsConstructor;
 import ru.otus.hw.models.Book;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Data
 @AllArgsConstructor
@@ -24,5 +25,13 @@ public class BookDto {
         title = book.getTitle();
         author = new AuthorDto(book.getAuthor());
         genres = book.getGenres().stream().map(GenreDto::new).toList();
+    }
+
+    public static Book fromDto(BookDto dto) {
+        return new Book(
+                dto.getId(),
+                dto.title,
+                AuthorDto.fromDto(dto.getAuthor()),
+                dto.getGenres().stream().map(GenreDto::fromDto).collect(Collectors.toSet()));
     }
 }

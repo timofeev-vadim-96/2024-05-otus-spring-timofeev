@@ -6,9 +6,10 @@ import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import ru.otus.hw.exceptions.EntityNotFoundException;
+import ru.otus.hw.models.Book;
 import ru.otus.hw.models.Comment;
-import ru.otus.hw.repositories.ReactiveBookRepository;
 import ru.otus.hw.repositories.ReactiveCommentRepository;
+import ru.otus.hw.services.dto.BookDto;
 import ru.otus.hw.services.dto.CommentDto;
 
 @Service
@@ -16,7 +17,7 @@ import ru.otus.hw.services.dto.CommentDto;
 public class CommentServiceImpl implements CommentService {
     private final ReactiveCommentRepository commentRepository;
 
-    private final ReactiveBookRepository bookRepository;
+    private final BookService bookService;
 
     @Override
     @Transactional(readOnly = true)
@@ -28,11 +29,10 @@ public class CommentServiceImpl implements CommentService {
     @Override
     @Transactional
     public Mono<CommentDto> create(String text, String bookId) {
-        return bookRepository
+        return bookService
                 .findById(bookId)
-                .switchIfEmpty(Mono.error(
-                        new EntityNotFoundException("Book with id = %s is not found".formatted(bookId))))
-                .flatMap(book -> {
+                .flatMap(dto -> {
+                    Book book = BookDto.fromDto(dto);
                     Comment comment = new Comment(null, text, book);
                     return commentRepository.save(comment);
                 })
