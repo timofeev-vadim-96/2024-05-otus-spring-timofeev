@@ -21,6 +21,7 @@ public class GenreServiceImpl implements GenreService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Flux<GenreDto> findAllByIds(Set<String> ids) {
         return genreRepository.findAllByIds(ids).map(GenreDto::new);
     }

@@ -1,44 +1,81 @@
-//package ru.otus.hw.controllers.classic;
-//
-//import org.junit.jupiter.api.Test;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-//import org.springframework.test.web.servlet.MockMvc;
-//import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-//
-//import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
-//import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
-//
-//@WebMvcTest(value = PageController.class)
-//class PageControllerTest {
-//    @Autowired
-//    private MockMvc mvc;
-//
-//    @Test
-//    void create() throws Exception {
-//        mvc.perform(MockMvcRequestBuilders.get("/create"))
-//                .andExpect(view().name("create"));
-//    }
-//
-//    @Test
-//    void edit() throws Exception {
-//        long id = 1L;
-//        mvc.perform(MockMvcRequestBuilders.get("/edit/{id}", id))
-//                .andExpect(view().name("edit"))
-//                .andExpect(model().attribute("id", id));
-//    }
-//
-//    @Test
-//    void list() throws Exception {
-//        mvc.perform(MockMvcRequestBuilders.get("/"))
-//                .andExpect(view().name("books"));
-//    }
-//
-//    @Test
-//    void book() throws Exception {
-//        long id = 1L;
-//        mvc.perform(MockMvcRequestBuilders.get("/book/{id}", id))
-//                .andExpect(view().name("book"))
-//                .andExpect(model().attribute("id", id));
-//    }
-//}
+package ru.otus.hw.controllers.classic;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.web.reactive.server.WebTestClient;
+
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+@WebFluxTest(controllers = PageController.class)
+@TestPropertySource(properties = {"mongock.enabled=false"})
+@DisplayName("Классический mvc контроллер для выдачи html-страниц")
+class PageControllerTest {
+    @Autowired
+    private WebTestClient webClient;
+
+    @Test
+    void create() {
+        webClient.get()
+                .uri("/create")
+                .accept(MediaType.TEXT_HTML)
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.TEXT_HTML)
+                .expectBody(String.class)
+                .value(body -> {
+                    assertTrue(body.contains("Book creation"));
+                });
+    }
+
+    @Test
+    void edit() {
+        String id = UUID.randomUUID().toString();
+
+        webClient.get()
+                .uri("/edit/{id}", id)
+                .accept(MediaType.TEXT_HTML)
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.TEXT_HTML)
+                .expectBody(String.class)
+                .value(body -> {
+                    assertTrue(body.contains("Book editing"));
+                });
+    }
+
+    @Test
+    void list() {
+        webClient.get()
+                .uri("/")
+                .accept(MediaType.TEXT_HTML)
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.TEXT_HTML)
+                .expectBody(String.class)
+                .value(body -> {
+                    assertTrue(body.contains("Book List"));
+                });
+    }
+
+    @Test
+    void book() {
+        String id = UUID.randomUUID().toString();
+
+        webClient.get()
+                .uri("/book/{id}", id)
+                .accept(MediaType.TEXT_HTML)
+                .exchange()
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.TEXT_HTML)
+                .expectBody(String.class)
+                .value(body -> {
+                    assertTrue(body.contains("Book info"));
+                });
+    }
+}
