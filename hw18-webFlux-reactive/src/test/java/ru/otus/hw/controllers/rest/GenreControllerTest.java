@@ -9,13 +9,12 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
 import ru.otus.hw.services.GenreService;
 import ru.otus.hw.services.dto.GenreDto;
 
-import java.util.List;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -35,17 +34,17 @@ class GenreControllerTest {
         GenreDto expected = new GenreDto(UUID.randomUUID().toString(), "Genre_1");
         when(genreService.findAll()).thenReturn(Flux.just(expected));
 
-        List<GenreDto> responseBody = webClient.get().uri("/api/v1/genre")
+        Flux<GenreDto> response = webClient.get().uri("/api/v1/genre")
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isOk()
-                .expectBodyList(GenreDto.class)
-                .returnResult()
+                .returnResult(GenreDto.class)
                 .getResponseBody();
 
-        assertThat(responseBody).isNotEmpty()
-                .hasSize(1)
-                .contains(expected);
+        StepVerifier.create(response)
+                .expectNext(expected)
+                .expectComplete()
+                .verify();
         verify(genreService, times(1)).findAll();
     }
 }

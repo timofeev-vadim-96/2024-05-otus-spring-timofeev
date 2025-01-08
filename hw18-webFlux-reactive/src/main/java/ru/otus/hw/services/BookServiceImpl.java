@@ -51,57 +51,56 @@ public class BookServiceImpl implements BookService {
     @Override
     @Transactional
     public Mono<BookDto> create(String title, String authorId, Set<String> genresIds) {
-        return save(null, title, authorId, genresIds).map(BookDto::new)
+        if (isEmpty(genresIds)) {
+            return Mono.error(new IllegalArgumentException("Genres ids must not be null"));
+        }
+
+        return Mono.zip(authorService.findById(authorId), getGenres(genresIds))
+                .flatMap(tuple -> {
+                            Book book = new Book(null, title,
+                                    AuthorDto.fromDto(tuple.getT1()),
+                                    new HashSet<>(tuple.getT2()));
+                            return bookRepository.save(book);
+                        }
+                )
+                .map(BookDto::new)
                 .doOnError(e -> log.error(e.getMessage()));
     }
 
     @Override
     @Transactional
     public Mono<BookDto> update(String id, String title, String authorId, Set<String> genresIds) {
-        return save(id, title, authorId, genresIds).map(BookDto::new)
+        if (isEmpty(genresIds)) {
+            return Mono.error(new IllegalArgumentException("Genres ids must not be null"));
+        }
+
+        return Mono.zip(authorService.findById(authorId), getGenres(genresIds))
+                .flatMap(tuple -> {
+                    return bookRepository.findById(id)
+                            .switchIfEmpty(Mono.error(
+                                    new EntityNotFoundException("Book with id = %s is not found".formatted(id))))
+                            .flatMap(book -> {
+                                book.setTitle(title);
+                                book.setAuthor(AuthorDto.fromDto(tuple.getT1()));
+                                book.setGenres(new HashSet<>(tuple.getT2()));
+                                return bookRepository.save(book);
+                            });
+                })
+                .map(BookDto::new)
                 .doOnError(e -> log.error(e.getMessage()));
     }
 
     @Override
     @Transactional
     public Mono<Void> deleteById(String id) {
-        commentRepository.deleteAllByBookId(id);
-        return bookRepository.deleteById(id);
-    }
-
-    private Mono<Book> save(String id, String title, String authorId, Set<String> genresIds) {
-        if (isEmpty(genresIds)) {
-            return Mono.error(new IllegalArgumentException("Genres ids must not be null"));
-        }
-
-        return Mono.zip(authorService.findById(authorId), getGenres(genresIds))
-                .flatMap(tuple -> Mono.defer(() -> {
-                    if (id != null) {
-                        return bookRepository.findById(id)
-                                .switchIfEmpty(Mono.error(
-                                        new EntityNotFoundException("Book with id = %s is not found".formatted(id))))
-                                .flatMap(book -> {
-                                    book.setTitle(title);
-                                    book.setAuthor(AuthorDto.fromDto(tuple.getT1()));
-                                    book.setGenres(new HashSet<>(tuple.getT2()));
-                                    return bookRepository.save(book);
-                                });
-                    } else {
-                        Book book = new Book(null, title,
-                                AuthorDto.fromDto(tuple.getT1()),
-                                new HashSet<>(tuple.getT2()));
-                        return bookRepository.save(book);
-                    }
-                }));
+        return bookRepository.deleteById(id)
+                .then(commentRepository.deleteAllByBookId(id));
     }
 
     private Mono<List<Genre>> getGenres(Set<String> genresIds) {
-        return genreService.findAllByIds(genresIds).collectList()
-                .flatMap(genreDtos -> {
-                    return Mono.just(genreDtos.stream()
-                            .map(GenreDto::fromDto)
-                            .toList());
-                })
+        return genreService.findAllByIds(genresIds)
+                .map(GenreDto::fromDto)
+                .collectList()
                 .flatMap(genres -> {
                     if (genres.size() != genresIds.size()) {
                         return Mono.error(new EntityNotFoundException(

@@ -12,6 +12,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 import ru.otus.hw.controllers.dto.BookViewDto;
 import ru.otus.hw.exceptions.EntityNotFoundException;
 import ru.otus.hw.services.BookService;
@@ -162,15 +163,17 @@ class BookControllerTest {
     void getAll() {
         when(bookService.findAll()).thenReturn(Flux.just(book));
 
-        List<BookDto> responseBody = webClient.get().uri("/api/v1/book")
+        Flux<BookDto> response = webClient.get().uri("/api/v1/book")
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isOk()
-                .expectBodyList(BookDto.class)
-                .returnResult()
+                .returnResult(BookDto.class)
                 .getResponseBody();
-        assertThat(responseBody).isNotEmpty().hasSize(1).contains(book);
 
+        StepVerifier.create(response)
+                .expectNext(book)
+                .expectComplete()
+                .verify();
         verify(bookService, times(1)).findAll();
     }
 

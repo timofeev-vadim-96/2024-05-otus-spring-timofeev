@@ -11,9 +11,11 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.otus.hw.exceptions.EntityNotFoundException;
 import ru.otus.hw.models.Author;
 import ru.otus.hw.models.Book;
+import ru.otus.hw.models.Comment;
 import ru.otus.hw.models.Genre;
 import ru.otus.hw.repositories.ReactiveAuthorRepository;
 import ru.otus.hw.repositories.ReactiveBookRepository;
+import ru.otus.hw.repositories.ReactiveCommentRepository;
 import ru.otus.hw.repositories.ReactiveGenreRepository;
 import ru.otus.hw.services.dto.BookDto;
 import ru.otus.hw.services.dto.GenreDto;
@@ -40,7 +42,10 @@ class BookServiceImplTest {
     private static final long BOOK_LIST_SIZE = 3;
 
     @Autowired
-    private BookServiceImpl bookService;
+    private BookService bookService;
+
+    @Autowired
+    private ReactiveCommentRepository commentRepository;
 
     @Autowired
     private ReactiveBookRepository bookRepository;
@@ -223,8 +228,11 @@ class BookServiceImplTest {
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.AFTER_METHOD)
     void deleteById() {
         String bookId = bookRepository.findAll().collectList().block().get(0).getId();
+        List<Comment> comments = commentRepository.findAllByBookId(bookId).collectList().block();
+        assertThat(comments).isNotNull().isNotEmpty();
 
         bookService.deleteById(bookId).block();
         assertNull(bookRepository.findById(bookId).block());
+        assertThat(commentRepository.findAllByBookId(bookId).collectList().block()).isNotNull().isEmpty();
     }
 }

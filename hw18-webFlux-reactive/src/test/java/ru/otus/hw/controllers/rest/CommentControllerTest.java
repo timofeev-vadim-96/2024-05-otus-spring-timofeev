@@ -13,6 +13,7 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 import ru.otus.hw.controllers.dto.CommentViewDto;
 import ru.otus.hw.exceptions.EntityNotFoundException;
 import ru.otus.hw.services.CommentService;
@@ -113,17 +114,17 @@ class CommentControllerTest {
         String bookId = dto.getBookId();
         when(commentService.findAllByBookId(bookId)).thenReturn(Flux.just(comment));
 
-        List<CommentDto> responseBody = webClient.get().uri("/api/v1/comment/{bookId}", bookId)
+        Flux<CommentDto> response = webClient.get().uri("/api/v1/comment/{bookId}", bookId)
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isOk()
-                .expectBodyList(CommentDto.class)
-                .returnResult()
+                .returnResult(CommentDto.class)
                 .getResponseBody();
 
-        assertThat(responseBody).isNotEmpty()
-                .hasSize(1)
-                .contains(comment);
+        StepVerifier.create(response)
+                .expectNext(comment)
+                .expectComplete()
+                .verify();
         verify(commentService, times(1)).findAllByBookId(bookId);
     }
 }

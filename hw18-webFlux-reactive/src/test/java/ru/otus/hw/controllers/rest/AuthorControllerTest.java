@@ -9,13 +9,12 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
 import ru.otus.hw.services.AuthorService;
 import ru.otus.hw.services.dto.AuthorDto;
 
-import java.util.List;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -35,17 +34,17 @@ class AuthorControllerTest {
         AuthorDto expected = new AuthorDto(UUID.randomUUID().toString(), "Author_1");
         when(authorService.findAll()).thenReturn(Flux.just(expected));
 
-        List<AuthorDto> responseBody = webClient.get().uri("/api/v1/author")
+        Flux<AuthorDto> response = webClient.get().uri("/api/v1/author")
                 .accept(MediaType.APPLICATION_JSON)
                 .exchange()
                 .expectStatus().isOk()
-                .expectBodyList(AuthorDto.class)
-                .returnResult()
+                .returnResult(AuthorDto.class)
                 .getResponseBody();
 
-        assertThat(responseBody).isNotEmpty()
-                .hasSize(1)
-                .contains(expected);
+        StepVerifier.create(response)
+                .expectNext(expected)
+                .expectComplete()
+                .verify();
         verify(authorService, times(1)).findAll();
     }
 }
