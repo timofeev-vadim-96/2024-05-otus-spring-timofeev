@@ -1,5 +1,6 @@
 package ru.otus.hw.services;
 
+import org.apache.logging.log4j.util.Strings;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,6 +8,8 @@ import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
 import ru.otus.hw.models.Genre;
 import ru.otus.hw.repositories.ReactiveGenreRepository;
 import ru.otus.hw.services.dto.GenreDto;
@@ -22,8 +25,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Import({GenreServiceImpl.class})
 @Transactional(propagation = Propagation.NEVER)
 class GenreServiceImplTest {
-    private static final int EXPECTED_GENRES_SIZE = 6;
-
     @Autowired
     private GenreService genreService;
 
@@ -32,17 +33,22 @@ class GenreServiceImplTest {
 
     @Test
     void findAll() {
-        List<GenreDto> genres = genreService.findAll().collectList().block();
+        Flux<GenreDto> genres = genreService.findAll();
 
-        assertThat(genres).isNotEmpty().hasSize(EXPECTED_GENRES_SIZE);
+        StepVerifier.FirstStep<GenreDto> verifier = StepVerifier.create(genres);
+
+        for (int i = 0; i < 6; i++) {
+            verifier.expectNextMatches(g -> g != null && Strings.isNotEmpty(g.getName()));
+        }
+        verifier.verifyComplete();
     }
 
     @Test
     void findAllByIds() {
         Set<String> genresIds = genreRepository.findAll()
                 .collectList()
-                .block().
-                stream()
+                .block()
+                .stream()
                 .map(Genre::getId)
                 .collect(Collectors.toSet());
 

@@ -9,6 +9,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
 import ru.otus.hw.exceptions.EntityNotFoundException;
 import ru.otus.hw.models.Book;
 import ru.otus.hw.repositories.ReactiveBookRepository;
@@ -28,8 +30,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Import({CommentServiceImpl.class, BookServiceImpl.class, AuthorServiceImpl.class, GenreServiceImpl.class})
 @Transactional(propagation = Propagation.NEVER)
 class CommentServiceImplTest {
-    private static final long COMMENT_LIST_SIZE_BY_1_BOOK = 1;
-
     @Autowired
     private CommentServiceImpl commentService;
 
@@ -49,10 +49,17 @@ class CommentServiceImplTest {
     @Test
     void findAllByBookId() {
         String expectedBookId = book.getId();
-        List<CommentDto> actualComments = commentService.findAllByBookId(expectedBookId).collectList().block();
+        Flux<CommentDto> commentsByBookId = commentService.findAllByBookId(expectedBookId);
 
-        assertEquals(COMMENT_LIST_SIZE_BY_1_BOOK, actualComments.size());
-        assertEquals(expectedBookId, actualComments.get(0).getBook().getId());
+        StepVerifier.FirstStep<CommentDto> verifier = StepVerifier.create(commentsByBookId);
+
+        verifier.expectNextMatches(c -> c != null
+                        && !c.getText().isEmpty()
+                        && c.getBook() != null
+                        && c.getBook().getId().equals(expectedBookId)
+                )
+                .verifyComplete();
+
     }
 
     @Test

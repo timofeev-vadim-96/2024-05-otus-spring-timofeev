@@ -1,5 +1,6 @@
 package ru.otus.hw.services;
 
+import org.apache.logging.log4j.util.Strings;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +9,8 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
+import reactor.test.StepVerifier;
 import ru.otus.hw.exceptions.EntityNotFoundException;
 import ru.otus.hw.models.Author;
 import ru.otus.hw.models.Book;
@@ -28,7 +31,6 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -39,8 +41,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @Import({BookServiceImpl.class, AuthorServiceImpl.class, GenreServiceImpl.class})
 @Transactional(propagation = Propagation.NEVER)
 class BookServiceImplTest {
-    private static final long BOOK_LIST_SIZE = 3;
-
     @Autowired
     private BookService bookService;
 
@@ -78,10 +78,18 @@ class BookServiceImplTest {
 
     @Test
     void findAll() {
-        List<BookDto> actualBooks = bookService.findAll().collectList().block();
+        Flux<BookDto> books = bookService.findAll();
 
-        assertFalse(actualBooks.isEmpty());
-        assertTrue(actualBooks.size() >= BOOK_LIST_SIZE);
+        StepVerifier.FirstStep<BookDto> verifier = StepVerifier.create(books);
+
+        for (int i = 0; i < 3; i++) {
+            verifier.expectNextMatches(b -> b != null
+                    && Strings.isNotEmpty(b.getTitle())
+                    && b.getAuthor() != null
+                    && !b.getGenres().isEmpty()
+            );
+        }
+        verifier.verifyComplete();
     }
 
     @Test
