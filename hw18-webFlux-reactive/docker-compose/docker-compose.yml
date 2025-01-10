@@ -1,0 +1,17 @@
+version: '5.0'
+
+services:
+  mongo:
+    container_name: otus_reactive_mongo
+    image: mongo:7.0
+    ports:
+      - '27017:27017'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin
+      MONGO_INITDB_DATABASE: otus_mongo # Создать базу данных mydatabase
+    volumes:
+      - ./mongo-data:/data/db
+      - ./mongo-config:/data/configdb
+
+

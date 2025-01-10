@@ -28,5 +28,6 @@
         <module>hw15-spring-actuator</module>
         <module>hw16-docker</module>
         <module>hw17-spring-cloud-circuit-breaker</module>
+        <module>hw18-webFlux-reactive</module>
     </modules>
 </project>
